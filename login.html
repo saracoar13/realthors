@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REALTHORS · Acceder</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0C0C0E;--s1:#141416;--s2:#1C1C1F;--s3:#242428;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#ECEAE4;--sub:#8A8880;--dim:#525050;
+  --cl:#6B8FBF;--cl-bg:rgba(107,143,191,0.09);--cl-bd:rgba(107,143,191,0.22);
+  --ag:#B8934A;--ag-bg:rgba(184,147,74,0.09);--ag-bd:rgba(184,147,74,0.22);
+  --inv:#5A9E7C;--inv-bg:rgba(90,158,124,0.09);--inv-bd:rgba(90,158,124,0.22);
+  --red:#A85A5A;--red-bg:rgba(168,90,90,0.09);--red-bd:rgba(168,90,90,0.22);
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+
+.auth-layout{display:grid;grid-template-columns:1fr 1fr;height:100vh}
+
+/* LEFT */
+.auth-left{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;background:var(--s1);border-right:1px solid var(--border)}
+.orb{position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none}
+.orb1{width:500px;height:500px;background:rgba(107,143,191,0.06);top:-100px;left:-100px}
+.orb2{width:400px;height:400px;background:rgba(90,158,124,0.05);bottom:-100px;right:-100px}
+.orb3{width:300px;height:300px;background:rgba(184,147,74,0.06);top:50%;left:50%;transform:translate(-50%,-50%)}
+.left-content{position:relative;z-index:1;text-align:center;max-width:380px}
+.left-logo{display:flex;flex-direction:column;align-items:center;margin-bottom:36px}
+.left-mark{margin-bottom:18px}
+.left-name{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;letter-spacing:0.28em;text-transform:uppercase;color:var(--text)}
+.left-slogan{font-family:'Cormorant Garamond',serif;font-size:12px;font-weight:300;letter-spacing:0.3em;text-transform:uppercase;color:var(--ag);margin-top:8px}
+.left-tagline{font-size:13px;color:var(--sub);line-height:1.8;font-weight:300;margin-bottom:40px}
+.profile-pills{display:flex;flex-direction:column;gap:10px;width:100%}
+.pp{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:11px;border:1px solid var(--border)}
+.pp.cl{border-color:var(--cl-bd);background:var(--cl-bg)}
+.pp.ag{border-color:var(--ag-bd);background:var(--ag-bg)}
+.pp.inv{border-color:var(--inv-bd);background:var(--inv-bg)}
+.pp-icon{font-size:17px}
+.pp-t{font-size:12px;font-weight:600;margin-bottom:1px}
+.pp.cl .pp-t{color:var(--cl)}.pp.ag .pp-t{color:var(--ag)}.pp.inv .pp-t{color:var(--inv)}
+.pp-s{font-size:11px;color:var(--sub)}
+
+/* RIGHT */
+.auth-right{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;overflow-y:auto}
+.auth-box{width:100%;max-width:380px}
+.mode-tabs{display:flex;background:var(--s2);border-radius:10px;padding:4px;margin-bottom:28px}
+.mtab{flex:1;padding:9px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;text-align:center;font-family:'Inter',sans-serif;transition:all .2s;color:var(--sub);border:none;background:transparent}
+.mtab.active{background:var(--s1);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.form-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;margin-bottom:5px}
+.form-sub{font-size:13px;color:var(--sub);margin-bottom:24px;font-weight:300}
+.frow{margin-bottom:13px}
+.frow label{display:block;font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.finp{width:100%;background:var(--s1);border:1px solid var(--border2);border-radius:8px;padding:10px 13px;font-size:13px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color .18s}
+.finp:focus{border-color:var(--ag)}
+.finp::placeholder{color:var(--dim)}
+.profile-select{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:13px}
+.ps-opt{padding:12px 6px;border-radius:9px;border:1px solid var(--border2);cursor:pointer;text-align:center;transition:all .2s;background:transparent}
+.ps-opt:hover{background:var(--s2)}
+.ps-opt.sel-cl{border-color:var(--cl-bd);background:var(--cl-bg)}
+.ps-opt.sel-ag{border-color:var(--ag-bd);background:var(--ag-bg)}
+.ps-opt.sel-inv{border-color:var(--inv-bd);background:var(--inv-bg)}
+.ps-icon{font-size:18px;margin-bottom:5px}
+.ps-lbl{font-size:10px;font-weight:600;display:block;color:var(--dim)}
+.ps-opt.sel-cl .ps-lbl{color:var(--cl)}
+.ps-opt.sel-ag .ps-lbl{color:var(--ag)}
+.ps-opt.sel-inv .ps-lbl{color:var(--inv)}
+.ps-sub{font-size:9px;color:var(--dim);display:block;margin-top:2px;line-height:1.3}
+.submit-btn{width:100%;padding:12px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border:none;background:var(--ag);color:#0c0c0e;transition:filter .2s;margin-top:4px}
+.submit-btn:hover{filter:brightness(1.08)}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+.switch-mode{text-align:center;margin-top:18px;font-size:12px;color:var(--sub)}
+.switch-mode span{color:var(--ag);cursor:pointer;font-weight:500}
+.switch-mode span:hover{text-decoration:underline}
+.msg{padding:10px 13px;border-radius:8px;font-size:12px;margin-bottom:13px;display:none}
+.msg.error{background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red)}
+.msg.success{background:var(--inv-bg);border:1px solid var(--inv-bd);color:var(--inv)}
+.msg.show{display:block}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(12,12,14,0.3);border-top-color:#0c0c0e;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.verify-screen{display:none;text-align:center;padding:20px 0}
+.verify-icon{font-size:48px;margin-bottom:20px}
+.verify-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;margin-bottom:10px}
+.verify-sub{font-size:13px;color:var(--sub);line-height:1.75;margin-bottom:16px}
+.verify-note{font-size:11px;color:var(--dim)}
+.back-link{position:fixed;top:20px;left:20px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);cursor:pointer;transition:color .18s;z-index:10;text-decoration:none}
+.back-link:hover{color:var(--sub)}
+</style>
+</head>
+<body>
+
+<a class="back-link" href="index.html">← Volver</a>
+
+<div class="auth-layout">
+
+  <!-- LEFT -->
+  <div class="auth-left">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="left-content">
+      <div class="left-logo">
+        <div class="left-mark">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="11" stroke="#B8934A" stroke-width="0.6" opacity="0.35"/>
+            <polygon points="14,3 8,13 12,13 10,21 17,11 13,11" fill="#B8934A" opacity="0.82"/>
+          </svg>
+        </div>
+        <div class="left-name">REALTHORS</div>
+        <div class="left-slogan">Connect. Seal. Grow.</div>
+      </div>
+      <p class="left-tagline">La primera plataforma inmobiliaria donde no buscas propiedades: las propiedades te encuentran a ti.</p>
+      <div class="profile-pills">
+        <div class="pp cl"><div class="pp-icon">🏠</div><div><div class="pp-t">Cliente</div><div class="pp-s">Busco comprar o alquilar</div></div></div>
+        <div class="pp ag"><div class="pp-icon">🤝</div><div><div class="pp-t">Agencia Inmobiliaria</div><div class="pp-s">Publico y gestiono propiedades</div></div></div>
+        <div class="pp inv"><div class="pp-icon">📈</div><div><div class="pp-t">Inversor</div><div class="pp-s">Busco oportunidades off-market</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="auth-right">
+    <div class="auth-box">
+      <div class="mode-tabs">
+        <button class="mtab active" id="tab-login" onclick="switchMode('login')">Iniciar sesión</button>
+        <button class="mtab" id="tab-register" onclick="switchMode('register')">Crear cuenta</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="form-login">
+        <div class="form-title">Bienvenido de nuevo</div>
+        <p class="form-sub">Accede a tu cuenta Realthors</p>
+        <div class="msg error" id="login-error"></div>
+        <div class="msg success" id="login-success"></div>
+        <div class="frow"><label>Email</label><input class="finp" type="email" id="login-email" placeholder="tu@email.com"></div>
+        <div class="frow"><label>Contraseña</label><input class="finp" type="password" id="login-pass" placeholder="••••••••"></div>
+        <button class="submit-btn" id="login-btn" onclick="doLogin()">Entrar</button>
+        <div class="switch-mode">¿No tienes cuenta? <span onclick="switchMode('register')">Crear cuenta gratis</span></div>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="form-register" style="display:none">
+        <div class="form-title">Crear cuenta</div>
+        <p class="form-sub">Elige tu perfil y empieza</p>
+        <div class="msg error" id="reg-error"></div>
+        <div class="msg success" id="reg-success"></div>
+        <div class="frow">
+          <label>Soy...</label>
+          <div class="profile-select">
+            <div class="ps-opt" id="ps-cl" onclick="selectProfile('cliente')">
+              <div class="ps-icon">🏠</div>
+              <span class="ps-lbl">Cliente</span>
+              <span class="ps-sub">Comprar / Alquilar</span>
+            </div>
+            <div class="ps-opt" id="ps-ag" onclick="selectProfile('agencia')">
+              <div class="ps-icon">🤝</div>
+              <span class="ps-lbl">Agencia</span>
+              <span class="ps-sub">Inmobiliaria</span>
+            </div>
+            <div class="ps-opt" id="ps-inv" onclick="selectProfile('inversor')">
+              <div class="ps-icon">📈</div>
+              <span class="ps-lbl">Inversor</span>
+              <span class="ps-sub">Off-market</span>
+            </div>
+          </div>
+        </div>
+        <div class="frow"><label>Nombre completo</label><input class="finp" type="text" id="reg-name" placeholder="Tu nombre"></div>
+        <div class="frow"><label>Email</label><input class="finp" type="email" id="reg-email" placeholder="tu@email.com"></div>
+        <div class="frow"><label>Contraseña</label><input class="finp" type="password" id="reg-pass" placeholder="Mínimo 8 caracteres"></div>
+        <button class="submit-btn" id="reg-btn" onclick="doRegister()">Crear cuenta</button>
+        <div class="switch-mode">¿Ya tienes cuenta? <span onclick="switchMode('login')">Iniciar sesión</span></div>
+      </div>
+
+      <!-- VERIFY -->
+      <div class="verify-screen" id="verify-screen">
+        <div class="verify-icon">📬</div>
+        <div class="verify-title">Revisa tu email</div>
+        <p class="verify-sub">Te hemos enviado un enlace de verificación. Haz clic en él para activar tu cuenta.</p>
+        <p class="verify-note">¿No lo ves? Revisa la carpeta de spam.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://zftxrycmzvsebuqwhyis.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmdHhyeWNtenZzZWJ1cXdoeWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNDUzNDEsImV4cCI6MjA5MzgyMTM0MX0.OSh4bP5Ypi0Wsv-d5c2fi-bphnhhmLJoU-yN5cc1AGA';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let selectedProfile=null;
+
+function switchMode(mode){
+  document.getElementById('form-login').style.display=mode==='login'?'block':'none';
+  document.getElementById('form-register').style.display=mode==='register'?'block':'none';
+  document.getElementById('verify-screen').style.display='none';
+  document.getElementById('tab-login').classList.toggle('active',mode==='login');
+  document.getElementById('tab-register').classList.toggle('active',mode==='register');
+}
+
+function selectProfile(p){
+  selectedProfile=p;
+  document.getElementById('ps-cl').className='ps-opt'+(p==='cliente'?' sel-cl':'');
+  document.getElementById('ps-ag').className='ps-opt'+(p==='agencia'?' sel-ag':'');
+  document.getElementById('ps-inv').className='ps-opt'+(p==='inversor'?' sel-inv':'');
+}
+
+function showMsg(id,text,type){
+  var el=document.getElementById(id);
+  el.textContent=text;
+  el.className='msg '+type+' show';
+}
+function hideMsg(id){document.getElementById(id).className='msg'}
+
+function redirect(profile){
+  if(profile==='agencia') window.location.href='agencia.html';
+  else if(profile==='inversor') window.location.href='inversor.html';
+  else window.location.href='cliente.html';
+}
+
+async function doLogin(){
+  var email=document.getElementById('login-email').value.trim();
+  var pass=document.getElementById('login-pass').value;
+  hideMsg('login-error');hideMsg('login-success');
+  if(!email||!pass){showMsg('login-error','Por favor rellena todos los campos.','error');return;}
+  var btn=document.getElementById('login-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Entrando...';
+  var {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  if(error){
+    showMsg('login-error',error.message.includes('Invalid')?'Email o contraseña incorrectos.':error.message,'error');
+    btn.disabled=false;btn.innerHTML='Entrar';
+  } else {
+    showMsg('login-success','¡Bienvenido! Redirigiendo...','success');
+    setTimeout(function(){redirect(data.user.user_metadata.profile)},1000);
+  }
+}
+
+async function doRegister(){
+  var name=document.getElementById('reg-name').value.trim();
+  var email=document.getElementById('reg-email').value.trim();
+  var pass=document.getElementById('reg-pass').value;
+  hideMsg('reg-error');hideMsg('reg-success');
+  if(!selectedProfile){showMsg('reg-error','Selecciona tu perfil para continuar.','error');return;}
+  if(!name){showMsg('reg-error','Introduce tu nombre.','error');return;}
+  if(!email){showMsg('reg-error','Introduce tu email.','error');return;}
+  if(pass.length<8){showMsg('reg-error','La contraseña debe tener al menos 8 caracteres.','error');return;}
+  var btn=document.getElementById('reg-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Creando cuenta...';
+  var {data,error}=await sb.auth.signUp({
+    email,password:pass,
+    options:{data:{full_name:name,profile:selectedProfile}}
+  });
+  if(error){
+    showMsg('reg-error',error.message.includes('already registered')?'Este email ya tiene una cuenta.':error.message,'error');
+    btn.disabled=false;btn.innerHTML='Crear cuenta';
+  } else {
+    document.getElementById('form-register').style.display='none';
+    document.getElementById('verify-screen').style.display='block';
+  }
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Enter') return;
+  if(document.getElementById('form-login').style.display!=='none') doLogin();
+  else if(document.getElementById('form-register').style.display!=='none') doRegister();
+});
+
+sb.auth.getSession().then(function(res){
+  if(res.data.session) redirect(res.data.session.user.user_metadata.profile);
+});
+</script>
+</body>
+</html>

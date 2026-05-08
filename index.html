@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REALTHORS · Connect. Seal. Grow.</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Inter',system-ui,-apple-system,sans-serif}
+.hero-name,.section-title,.cta-title,.slogan-big,.sg-word,.left-name,.form-title,.verify-title{font-family:'Cormorant Garamond','Georgia',serif}
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0C0C0E;--s1:#141416;--s2:#1C1C1F;--s3:#242428;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#ECEAE4;--sub:#8A8880;--dim:#525050;
+  --cl:#6B8FBF;--cl-bg:rgba(107,143,191,0.09);--cl-bd:rgba(107,143,191,0.22);
+  --ag:#B8934A;--ag-bg:rgba(184,147,74,0.09);--ag-bd:rgba(184,147,74,0.22);
+  --inv:#5A9E7C;--inv-bg:rgba(90,158,124,0.09);--inv-bd:rgba(90,158,124,0.22);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:4px}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;background:rgba(12,12,14,0.93);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:border-color .3s}
+.logo{display:flex;align-items:center;gap:9px;cursor:pointer}
+.logo-word{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;letter-spacing:0.2em;text-transform:uppercase;color:var(--text)}
+.nav-links{display:flex;gap:2px}
+.nlink{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;color:var(--sub);cursor:pointer;border:none;background:transparent;font-family:'Inter',sans-serif;transition:color .18s}
+.nlink:hover{color:var(--text)}
+.nav-cta{display:flex;gap:8px}
+.nbtn-ghost{padding:7px 18px;border-radius:7px;font-size:12px;font-weight:500;background:transparent;color:var(--sub);border:1px solid var(--border2);cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s}
+.nbtn-ghost:hover{color:var(--text)}
+.nbtn-main{padding:7px 20px;border-radius:7px;font-size:12px;font-weight:600;background:var(--ag);color:#0c0c0e;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:filter .18s}
+.nbtn-main:hover{filter:brightness(1.08)}
+
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:100px 24px 100px}
+.orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(120px)}
+.orb1{width:700px;height:700px;background:rgba(107,143,191,0.05);top:-200px;left:-200px}
+.orb2{width:600px;height:600px;background:rgba(90,158,124,0.04);bottom:-100px;right:-100px}
+.orb3{width:500px;height:500px;background:rgba(184,147,74,0.05);top:50%;left:50%;transform:translate(-50%,-50%)}
+
+.hero-logo{display:flex;flex-direction:column;align-items:center;margin-bottom:26px;animation:fu .8s ease both}
+.hero-mark{width:44px;height:44px;margin-bottom:22px;display:flex;align-items:center;justify-content:center}
+.hero-name{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,5vw,56px);font-weight:300;letter-spacing:0.32em;text-transform:uppercase;color:var(--text);line-height:1}
+.hero-slogan{font-family:'Cormorant Garamond',serif;font-size:clamp(12px,1.7vw,16px);font-weight:300;letter-spacing:0.34em;text-transform:uppercase;color:var(--ag);margin-bottom:52px;animation:fu .8s .1s ease both}
+.sdot{color:var(--dim);margin:0 3px}
+.hero-sub{font-size:15px;color:var(--sub);text-align:center;max-width:500px;line-height:1.8;margin-bottom:68px;animation:fu .8s .18s ease both;font-weight:300}
+
+.profiles-vertical{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:960px;width:100%;animation:fu .8s .28s ease both}
+.pcard{background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:32px 26px;cursor:pointer;transition:all .28s;display:flex;flex-direction:column}
+.pcard:hover{transform:translateY(-4px);box-shadow:0 20px 48px rgba(0,0,0,.5)}
+.pcard.cl:hover{border-color:var(--cl-bd)}
+.pcard.ag:hover{border-color:var(--ag-bd)}
+.pcard.inv:hover{border-color:var(--inv-bd)}
+.pc-avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:20px;flex-shrink:0}
+.pc-avatar.cl{background:var(--cl-bg);border:1px solid var(--cl-bd)}
+.pc-avatar.ag{background:var(--ag-bg);border:1px solid var(--ag-bd)}
+.pc-avatar.inv{background:var(--inv-bg);border:1px solid var(--inv-bd)}
+.pc-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:500;margin-bottom:6px;color:var(--text)}
+.pc-desc{font-size:12px;color:var(--sub);margin-bottom:22px;font-weight:300}
+.pc-feats{display:flex;flex-direction:column;gap:10px;flex:1;margin-bottom:26px}
+.pc-feat{font-size:12px;color:var(--sub);display:flex;align-items:center;gap:10px}
+.pc-check{font-size:13px;font-weight:700;flex-shrink:0}
+.pc-check.cl{color:var(--cl)}.pc-check.ag{color:var(--ag)}.pc-check.inv{color:var(--inv)}
+.pc-btn{width:100%;padding:12px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;background:transparent;margin-top:auto}
+.pc-btn.cl{border:1px solid var(--cl-bd);color:var(--cl)}.pc-btn.cl:hover{background:var(--cl-bg)}
+.pc-btn.ag{border:1px solid var(--ag-bd);color:var(--ag)}.pc-btn.ag:hover{background:var(--ag-bg)}
+.pc-btn.inv{border:1px solid var(--inv-bd);color:var(--inv)}.pc-btn.inv:hover{background:var(--inv-bg)}
+
+.scroll-hint{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--dim);font-size:9px;letter-spacing:.16em;text-transform:uppercase;animation:fu .8s .5s ease both}
+.scroll-line{width:1px;height:26px;background:linear-gradient(to bottom,var(--dim),transparent);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes fu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.stats-bar{background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:34px 48px}
+.stats-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.stat-item{text-align:center;padding:0 20px;border-right:1px solid var(--border)}
+.stat-item:last-child{border-right:none}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300;color:var(--text);line-height:1;margin-bottom:5px}
+.stat-lbl{font-size:10px;color:var(--sub);letter-spacing:.1em;text-transform:uppercase}
+.stat-sub{font-size:10px;color:var(--dim);margin-top:2px}
+
+/* slogan section */
+.slogan-sec{background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:80px 48px}
+.slogan-inner{max-width:1100px;margin:0 auto}
+.slogan-big{font-family:'Cormorant Garamond',serif;font-size:clamp(38px,6vw,66px);font-weight:300;text-align:center;margin-bottom:54px;line-height:1.1}
+.w-cl{color:var(--cl)}.w-ag{color:var(--ag)}.w-inv{color:var(--inv)}.bdot{color:var(--dim);margin:0 6px}
+.sg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.sg-card{padding:26px;border-radius:14px;border:1px solid var(--border)}
+.sg-card.cl{border-color:var(--cl-bd);background:var(--cl-bg)}
+.sg-card.ag{border-color:var(--ag-bd);background:var(--ag-bg)}
+.sg-card.inv{border-color:var(--inv-bd);background:var(--inv-bg)}
+.sg-word{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;margin-bottom:5px}
+.sg-card.cl .sg-word{color:var(--cl)}.sg-card.ag .sg-word{color:var(--ag)}.sg-card.inv .sg-word{color:var(--inv)}
+.sg-profile{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;display:block}
+.sg-ph{font-size:12px;color:var(--dim);font-style:italic}
+
+.divider{height:1px;background:linear-gradient(to right,transparent,var(--border2),transparent);margin:0 48px}
+
+/* secciones placeholder */
+.sec-block{padding:96px 48px;max-width:1100px;margin:0 auto}
+.sec-lbl{font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--ag);margin-bottom:13px;display:block}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,44px);font-weight:300;line-height:1.15;color:var(--text);margin-bottom:13px}
+.sec-title em{font-style:italic;color:var(--ag)}
+.sec-ph{margin-top:22px;padding:36px;background:var(--s1);border:1px dashed rgba(255,255,255,0.08);border-radius:12px;text-align:center;color:var(--dim);font-size:11px;letter-spacing:.1em}
+
+.cta-sec{border-top:1px solid var(--border);padding:96px 48px;text-align:center}
+.cta-title{font-family:'Cormorant Garamond',serif;font-size:clamp(32px,5vw,52px);font-weight:300;line-height:1.15;margin-bottom:12px}
+.cta-title em{font-style:italic;color:var(--ag)}
+.cta-sub{font-size:14px;color:var(--sub);margin-bottom:42px;font-weight:300;max-width:420px;margin-left:auto;margin-right:auto}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
+.cta-btn{display:flex;align-items:center;gap:8px;padding:13px 24px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .22s;border:1px solid}
+.cta-btn.cl{background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)}.cta-btn.cl:hover{transform:translateY(-2px)}
+.cta-btn.ag{background:var(--ag-bg);color:var(--ag);border-color:var(--ag-bd)}.cta-btn.ag:hover{transform:translateY(-2px)}
+.cta-btn.inv{background:var(--inv-bg);color:var(--inv);border-color:var(--inv-bd)}.cta-btn.inv:hover{transform:translateY(-2px)}
+.cta-note{font-size:11px;color:var(--dim)}
+
+footer{border-top:1px solid var(--border);padding:34px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.fl-left{display:flex;align-items:center;gap:10px}
+.fl-word{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:400;letter-spacing:.18em;text-transform:uppercase;color:var(--sub)}
+.fl-slogan{font-size:11px;color:var(--dim);letter-spacing:.08em}
+.fl-links{display:flex;gap:16px}
+.fl-link{font-size:11px;color:var(--dim);cursor:pointer;transition:color .18s}
+.fl-link:hover{color:var(--sub)}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="logo">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="11" stroke="#B8934A" stroke-width="0.6" opacity="0.35"/>
+      <polygon points="14,3 8,13 12,13 10,21 17,11 13,11" fill="#B8934A" opacity="0.82"/>
+    </svg>
+    <div class="logo-word">REALTHORS</div>
+  </div>
+  <div class="nav-links">
+    <button class="nlink" onclick="go('s-slogan')">Connect. Seal. Grow.</button>
+    <button class="nlink" onclick="go('s-porque')">Por qué nosotros</button>
+    <button class="nlink" onclick="go('s-concepto')">Concepto</button>
+    <button class="nlink" onclick="go('s-quienes')">Quiénes somos</button>
+  </div>
+  <div class="nav-cta">
+    <button class="nbtn-ghost">Iniciar sesión</button>
+    <button class="nbtn-main">Crear cuenta</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+
+  <div class="hero-logo">
+    <div class="hero-mark">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="11" stroke="#B8934A" stroke-width="0.6" opacity="0.35"/>
+        <polygon points="14,3 8,13 12,13 10,21 17,11 13,11" fill="#B8934A" opacity="0.82"/>
+      </svg>
+    </div>
+    <div class="hero-name">REALTHORS</div>
+  </div>
+
+  <div class="hero-slogan">Connect<span class="sdot">.</span>Seal<span class="sdot">.</span>Grow<span class="sdot">.</span></div>
+
+  <p class="hero-sub">La primera plataforma inmobiliaria donde no buscas propiedades: las propiedades te encuentran a ti.</p>
+
+  <div class="profiles-vertical">
+
+    <div class="pcard cl">
+      <div class="pc-avatar cl">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="rgba(107,143,191,0.9)"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="rgba(107,143,191,0.9)" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <div class="pc-title">Soy Cliente</div>
+      <p class="pc-desc">Busco comprar o alquilar</p>
+      <div class="pc-feats">
+        <div class="pc-feat"><span class="pc-check cl">✓</span>Búsqueda avanzada con IA</div>
+        <div class="pc-feat"><span class="pc-check cl">✓</span>Análisis de inversión</div>
+        <div class="pc-feat"><span class="pc-check cl">✓</span>Asistente legal automático</div>
+        <div class="pc-feat"><span class="pc-check cl">✓</span>Simulador financiero</div>
+        <div class="pc-feat"><span class="pc-check cl">✓</span>Reserva de visitas online</div>
+      </div>
+      <button class="pc-btn cl">Acceder →</button>
+    </div>
+
+    <div class="pcard ag">
+      <div class="pc-avatar ag">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="14" rx="2" stroke="rgba(184,147,74,0.9)" stroke-width="1.8"/><path d="M8 6V4a4 4 0 018 0v2" stroke="rgba(184,147,74,0.9)" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <div class="pc-title">Soy Agencia Inmobiliaria</div>
+      <p class="pc-desc">Publico y gestiono propiedades</p>
+      <div class="pc-feats">
+        <div class="pc-feat"><span class="pc-check ag">✓</span>CRM inmobiliario integrado</div>
+        <div class="pc-feat"><span class="pc-check ag">✓</span>Gestión de co-mandatos</div>
+        <div class="pc-feat"><span class="pc-check ag">✓</span>Agenda automatizada</div>
+        <div class="pc-feat"><span class="pc-check ag">✓</span>Matching automático con clientes</div>
+        <div class="pc-feat"><span class="pc-check ag">✓</span>Analytics en tiempo real</div>
+      </div>
+      <button class="pc-btn ag">Acceder →</button>
+    </div>
+
+    <div class="pcard inv">
+      <div class="pc-avatar inv">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M3 17l4-4 4 4 4-6 4 2" stroke="rgba(90,158,124,0.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="5" r="2" fill="rgba(90,158,124,0.9)"/></svg>
+      </div>
+      <div class="pc-title">Soy Inversor</div>
+      <p class="pc-desc">Busco oportunidades off-market</p>
+      <div class="pc-feats">
+        <div class="pc-feat"><span class="pc-check inv">✓</span>Acceso a deals exclusivos</div>
+        <div class="pc-feat"><span class="pc-check inv">✓</span>Score de inversión IA</div>
+        <div class="pc-feat"><span class="pc-check inv">✓</span>Análisis de mercado completo</div>
+        <div class="pc-feat"><span class="pc-check inv">✓</span>Gestión de portfolio</div>
+        <div class="pc-feat"><span class="pc-check inv">✓</span>Red de family offices</div>
+      </div>
+      <button class="pc-btn inv">Acceder →</button>
+    </div>
+
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    <span>Descubrir</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item"><div class="stat-num">12.400+</div><div class="stat-lbl">Propiedades</div><div class="stat-sub">Activas en la plataforma</div></div>
+    <div class="stat-item"><div class="stat-num">38</div><div class="stat-lbl">Países</div><div class="stat-sub">Cobertura internacional</div></div>
+    <div class="stat-item"><div class="stat-num">1.200+</div><div class="stat-lbl">Agencias</div><div class="stat-sub">Verificadas en la red</div></div>
+    <div class="stat-item"><div class="stat-num">94%</div><div class="stat-lbl">Satisfacción</div><div class="stat-sub">Valoración media</div></div>
+  </div>
+</div>
+
+<!-- CONNECT. SEAL. GROW. -->
+<div id="s-slogan" class="slogan-sec">
+  <div class="slogan-inner">
+    <div class="slogan-big">
+      <span class="w-cl">Connect</span><span class="bdot">.</span>
+      <span class="w-ag">Seal</span><span class="bdot">.</span>
+      <span class="w-inv">Grow</span><span class="bdot">.</span>
+    </div>
+    <div class="sg-grid">
+      <div class="sg-card cl">
+        <div class="sg-word">Connect.</div>
+        <p style="font-size:13px;color:var(--sub);line-height:1.75">La conexión entre personas, oportunidades y datos. Realthors identifica perfiles, necesidades y objetivos para crear matches más precisos e inteligentes.</p>
+      </div>
+      <div class="sg-card ag">
+        <div class="sg-word">Seal.</div>
+        <p style="font-size:13px;color:var(--sub);line-height:1.75">La capacidad de transformar una oportunidad en una operación real. Desde la gestión comercial hasta la validación documental y el cierre de la transacción.</p>
+      </div>
+      <div class="sg-card inv">
+        <div class="sg-word">Grow.</div>
+        <p style="font-size:13px;color:var(--sub);line-height:1.75">El objetivo final de todo activo inmobiliario: crecer. Patrimonio, inversión, rentabilidad y evolución a largo plazo.</p>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:13px;color:var(--dim);margin-top:40px;letter-spacing:.06em">Tres perfiles. Tres acciones. Una única plataforma.</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- POR QUÉ REALTHORS -->
+<div id="s-porque">
+  <div class="sec-block">
+    <span class="sec-lbl">Por qué Realthors</span>
+    <h2 class="sec-title">No es un portal inmobiliario.<br><em>Es una infraestructura.</em></h2>
+    <div style="max-width:680px;margin-top:36px">
+      <p style="font-size:14px;color:var(--sub);line-height:1.9;font-weight:300;margin-bottom:22px">La mayoría de plataformas inmobiliarias funcionan igual desde hace años: filtrar, buscar y repetir procesos interminables en varias páginas, donde los anuncios se repiten o no encajan por algún detalle.</p>
+      <p style="font-size:14px;color:var(--sub);line-height:1.9;font-weight:300;margin-bottom:22px">Realthors nace para cambiar esa lógica. En lugar de obligar al usuario a perseguir oportunidades, la plataforma conecta automáticamente a las personas adecuadas con las propiedades adecuadas. Todo desde un único entorno: búsqueda, inversión, gestión documental, validación administrativa, operaciones y acompañamiento jurídico.</p>
+      <p style="font-size:14px;color:var(--text);line-height:1.9;font-weight:400">Menos fricción, menos intermediación innecesaria y una experiencia mucho más eficiente para clientes, agencias e inversores.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- QUIÉNES SOMOS -->
+<div id="s-quienes" style="background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="sec-block">
+    <span class="sec-lbl">Quiénes somos</span>
+    <h2 class="sec-title">El futuro del inmobiliario no pertenece<br>a quien publica más. <em>Sino a quien<br>decide mejor.</em></h2>
+    <div style="max-width:680px;margin-top:36px">
+      <p style="font-size:14px;color:var(--sub);line-height:1.9;font-weight:300;margin-bottom:22px">Nuestro nombre nace de la unión entre <strong style="color:var(--text);font-weight:500">Realtor</strong> y <strong style="color:var(--text);font-weight:500">Thor</strong>: la nueva generación de profesionales inmobiliarios capaces de actuar con precisión, velocidad y potencia. Nuestro símbolo, el rayo, representa exactamente eso: claridad, fuerza y conexión instantánea entre la oportunidad correcta y la persona correcta.</p>
+      <p style="font-size:14px;color:var(--sub);line-height:1.9;font-weight:300;margin-bottom:32px">Creamos una infraestructura inmobiliaria inteligente diseñada para agencias, inversores y compradores que buscan operar de forma más eficiente, profesional y global. Realthors convierte procesos complejos en experiencias simples, centralizando todo el ecosistema inmobiliario en una única plataforma 360°.</p>
+      <p style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--ag);font-style:italic">Realthors, your real realtor.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- CTA -->
+<div class="cta-sec">
+  <h2 class="cta-title">Empieza hoy.<br><em>Tu próxima operación te espera.</em></h2>
+  <p class="cta-sub">Elige tu perfil y accede a la plataforma inmobiliaria que conecta a las personas correctas con las oportunidades correctas.</p>
+  <div class="cta-btns">
+    <button class="cta-btn cl">🏠 Soy Cliente</button>
+    <button class="cta-btn ag">🤝 Soy Agencia Inmobiliaria</button>
+    <button class="cta-btn inv">📈 Soy Inversor</button>
+  </div>
+  <p class="cta-note">Acceso gratuito · Sin tarjeta de crédito · Verificación en 24h</p>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="fl-left">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="11" stroke="#B8934A" stroke-width="0.6" opacity="0.35"/>
+      <polygon points="14,3 8,13 12,13 10,21 17,11 13,11" fill="#B8934A" opacity="0.7"/>
+    </svg>
+    <div class="fl-word">REALTHORS</div>
+    <span style="color:var(--dim)">·</span>
+    <span class="fl-slogan">Connect. Seal. Grow.</span>
+  </div>
+  <div class="fl-links">
+    <span class="fl-link">Términos</span>
+    <span class="fl-link">Privacidad</span>
+    <span class="fl-link">RGPD</span>
+    <span class="fl-link">Contacto</span>
+  </div>
+  <span style="font-size:11px;color:var(--dim)">© 2025 Realthors</span>
+</footer>
+
+<script>
+function go(id){document.getElementById(id).scrollIntoView({behavior:'smooth'})}
+window.addEventListener('scroll',function(){
+  document.getElementById('nav').style.borderBottomColor=window.scrollY>40?'rgba(255,255,255,0.09)':'rgba(255,255,255,0.06)';
+});
+var obs=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting){x.target.style.opacity='1';x.target.style.transform='translateY(0)'}})},{threshold:0.1});
+document.querySelectorAll('.sg-card,.stat-item').forEach(function(el){
+  el.style.opacity='0';el.style.transform='translateY(14px)';el.style.transition='opacity .55s ease,transform .55s ease';
+  obs.observe(el);
+});
+</script>
+</body>
+</html>

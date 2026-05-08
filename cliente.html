@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REALTHOR · Cliente</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0E0E10;--s1:#161618;--s2:#1E1E21;--s3:#26262A;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#E8E6E0;--sub:#9A9890;--dim:#5A5856;
+  --cl:#6B8FBF;--cl-bg:rgba(107,143,191,0.09);--cl-bd:rgba(107,143,191,0.22);
+  --ag:#B8934A;--ag-bg:rgba(184,147,74,0.09);--ag-bd:rgba(184,147,74,0.22);
+  --inv:#5A9E7C;--inv-bg:rgba(90,158,124,0.09);--inv-bd:rgba(90,158,124,0.22);
+  --red:#A85A5A;--red-bg:rgba(168,90,90,0.09);--red-bd:rgba(168,90,90,0.22);
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:4px}
+
+/* ── NAV ── */
+nav{height:54px;padding:0 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(14,14,16,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:300}
+.logo{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.logo-word{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;letter-spacing:0.18em;text-transform:uppercase;color:var(--text)}
+.nav-tabs{display:flex;gap:2px}
+.ntab{padding:6px 14px;border-radius:6px;border:none;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s;position:relative}
+.ntab:hover{color:var(--text)}
+.ntab.active{background:var(--s2);color:var(--text);border:1px solid var(--border2)}
+.ntab-dot{position:absolute;top:5px;right:7px;width:5px;height:5px;border-radius:50%;background:var(--cl)}
+.ntab-has-dot{position:relative}.ntab-has-dot::after{content:'';position:absolute;top:5px;right:7px;width:5px;height:5px;border-radius:50%;background:var(--cl)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.badge-cl{padding:4px 10px;border-radius:5px;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:var(--cl-bg);color:var(--cl);border:1px solid var(--cl-bd)}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--cl-bg);border:1px solid var(--cl-bd);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--cl);cursor:pointer}
+
+/* ── SCREENS ── */
+.screen{display:none;position:fixed;top:54px;left:0;right:0;bottom:0;overflow:hidden}
+.screen.active{display:block}
+
+/* ══════════════════════════════════
+   TAB 1 · INICIO / FEED
+══════════════════════════════════ */
+#t-home{background:var(--bg)}
+.home-layout{display:grid;grid-template-columns:248px 1fr 264px;height:calc(100vh - 54px)}
+.home-left{background:var(--s1);border-right:1px solid var(--border);padding:20px;overflow-y:auto;height:100%}
+.hl-av{width:48px;height:48px;border-radius:50%;background:var(--cl-bg);border:2px solid var(--cl-bd);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:11px}
+.hl-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;margin-bottom:2px}
+.hl-sub{font-size:11px;color:var(--sub);margin-bottom:13px}
+.prog-mini .pl{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-bottom:4px}
+.prog-mini .pl b{color:var(--cl)}
+.prog-track{height:3px;background:var(--s3);border-radius:2px;overflow:hidden;margin-bottom:16px}
+.prog-fill{height:100%;background:var(--cl);border-radius:2px}
+.hl-sep{font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:12px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.hl-row{display:flex;align-items:flex-start;gap:7px;padding:4px 0;font-size:11px;color:var(--sub);line-height:1.4}
+.hl-row b{color:var(--text);font-weight:500}
+.hl-dot{width:4px;height:4px;border-radius:50%;background:var(--cl);flex-shrink:0;margin-top:5px}
+.hl-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.hl-tag{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:500;background:var(--cl-bg);color:var(--cl);border:1px solid var(--cl-bd)}
+.edit-btn{width:100%;margin-top:14px;padding:8px;border:1px solid var(--border2);border-radius:7px;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .18s}
+.edit-btn:hover{border-color:var(--cl);color:var(--cl)}
+
+/* Keys summary in left sidebar */
+.keys-summary{margin-top:4px}
+.key-mini{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;background:var(--s2);border:1px solid var(--border);margin-bottom:5px;cursor:pointer;transition:border-color .18s;font-size:11px}
+.key-mini:hover{border-color:var(--border2)}
+.km-icon{font-size:14px}
+.km-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.km-status{font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px}
+.km-status.active{background:var(--cl-bg);color:var(--cl)}
+.km-status.pending{background:var(--ag-bg);color:var(--ag)}
+.km-status.cancelled{background:var(--red-bg);color:var(--red)}
+
+.home-center{padding:22px;overflow-y:auto;height:100%}
+.feed-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.feed-header h2{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400}
+.feed-header p{font-size:11px;color:var(--sub);margin-top:2px}
+.feed-filters{display:flex;gap:5px;margin-bottom:16px;flex-wrap:wrap}
+.ff{padding:4px 11px;border-radius:12px;font-size:11px;font-weight:500;border:1px solid var(--border2);cursor:pointer;color:var(--sub);background:transparent;transition:all .18s}
+.ff.on{background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)}
+.ff:hover:not(.on){color:var(--text)}
+
+.feed-card{background:var(--s1);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:14px;cursor:pointer;transition:border-color .2s}
+.feed-card:hover{border-color:var(--border2)}
+.fc-img{height:190px;display:flex;align-items:center;justify-content:center;font-size:60px;position:relative}
+.fc-score-pill{position:absolute;top:11px;right:11px;background:rgba(14,14,16,.88);border:1px solid var(--border2);backdrop-filter:blur(6px);border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700;color:var(--ag)}
+.fc-new{position:absolute;top:11px;left:11px;background:var(--cl-bg);border:1px solid var(--cl-bd);border-radius:5px;padding:2px 7px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cl)}
+.fc-type{position:absolute;bottom:11px;left:11px;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.bv{background:var(--cl-bg);color:var(--cl);border:1px solid var(--cl-bd)}
+.ba{background:var(--inv-bg);color:var(--inv);border:1px solid var(--inv-bd)}
+.fc-body{padding:14px}
+.fc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.fc-price{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:500}
+.fc-score-box{text-align:right}
+.fc-score-box .sv{font-size:14px;font-weight:700;color:var(--ag);display:block}
+.fc-score-box .sk{font-size:9px;color:var(--sub);text-transform:uppercase;letter-spacing:.08em}
+.fc-loc{font-size:11px;color:var(--sub);margin-bottom:8px}
+.fc-specs{display:flex;gap:12px;font-size:11px;color:var(--dim);margin-bottom:8px}
+.fc-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.ftag{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
+.ftag.cl{background:var(--cl-bg);color:var(--cl)}
+.ftag.inv{background:var(--inv-bg);color:var(--inv)}
+.ftag.ag{background:var(--ag-bg);color:var(--ag)}
+.fc-why{background:var(--s2);border-radius:7px;padding:9px 11px;font-size:11px;color:var(--sub);line-height:1.6;margin-bottom:10px}
+.fc-why b{color:var(--inv);font-weight:500}
+.fc-actions{display:flex;gap:7px;padding-top:10px;border-top:1px solid var(--border)}
+.fca{flex:1;padding:7px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;border:1px solid var(--border2);background:transparent;color:var(--sub)}
+.fca:hover{border-color:var(--cl);color:var(--cl)}
+.fca.main{background:var(--cl);color:#fff;border-color:var(--cl)}
+.fca.main:hover{filter:brightness(1.1)}
+
+.home-right{background:var(--s1);border-left:1px solid var(--border);padding:18px;overflow-y:auto;height:100%}
+.hr-title{font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.notif{display:flex;gap:9px;padding:9px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.notif:last-child{border-bottom:none}
+.ni-ic{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.ni-ic.cl{background:var(--cl-bg)}.ni-ic.inv{background:var(--inv-bg)}.ni-ic.ag{background:var(--ag-bg)}.ni-ic.red{background:var(--red-bg)}
+.ni-b p{font-size:11px;line-height:1.45;margin-bottom:2px}
+.ni-b span{font-size:10px;color:var(--dim)}
+.saved-sec{margin-top:18px}
+.saved-card{background:var(--s2);border-radius:8px;padding:11px;margin-bottom:7px;cursor:pointer;border:1px solid var(--border);transition:border-color .18s}
+.saved-card:hover{border-color:var(--border2)}
+.sc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.sc-price{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:500}
+.sc-score{font-size:11px;font-weight:600;color:var(--ag)}
+.sc-loc{font-size:10px;color:var(--sub)}
+
+/* ══════════════════════════════════
+   TAB 2 · BUSCAR
+══════════════════════════════════ */
+#t-search{background:var(--bg)}
+.search-layout{display:grid;grid-template-columns:280px 1fr;height:calc(100vh - 54px)}
+.filters-col{background:var(--s1);border-right:1px solid var(--border);padding:20px;overflow-y:auto;height:100%}
+.fc-head{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;margin-bottom:14px}
+.ai-block{background:linear-gradient(135deg,var(--s2),var(--s3));border:1px solid var(--ag-bd);border-radius:10px;padding:13px;margin-bottom:16px}
+.ai-block label{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ag);display:block;margin-bottom:6px}
+.ai-ta{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;resize:none;height:52px;line-height:1.5}
+.ai-ta::placeholder{color:var(--dim)}
+.ai-go{margin-top:6px;width:100%;background:var(--ag);color:#0e0e10;border:none;border-radius:6px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+.fgroup{margin-bottom:16px}
+.fgroup>label{display:block;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{padding:4px 10px;border-radius:10px;font-size:11px;font-weight:500;border:1px solid var(--border2);cursor:pointer;transition:all .18s;background:transparent;color:var(--sub);user-select:none}
+.chip:hover{color:var(--text)}
+.chip.on{background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)}
+.rrow{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.rinp{padding:7px 10px;border:1px solid var(--border2);border-radius:6px;font-size:11px;font-family:'Inter',sans-serif;background:var(--s2);color:var(--text);width:100%;outline:none}
+.rinp:focus{border-color:var(--cl)}
+.more-btn{font-size:11px;color:var(--ag);cursor:pointer;font-weight:500;background:none;border:none;font-family:'Inter',sans-serif;padding:0}
+.results-col{padding:20px;overflow-y:auto;height:100%}
+.rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.rh h2{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400}
+.rh p{font-size:11px;color:var(--sub);margin-top:2px}
+.rsort{background:var(--s1);border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--text);font-family:'Inter',sans-serif;outline:none;cursor:pointer}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:13px}
+.pcard{background:var(--s1);border-radius:11px;overflow:hidden;border:1px solid var(--border);cursor:pointer;transition:all .22s}
+.pcard:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.4)}
+.pimg{height:145px;position:relative;display:flex;align-items:center;justify-content:center;font-size:44px}
+.pbadge{position:absolute;top:9px;left:9px;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.pscore{position:absolute;top:9px;right:9px;background:rgba(14,14,16,.85);border:1px solid var(--border2);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:600;color:var(--ag)}
+.pbody{padding:12px}
+.pprice{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;margin-bottom:3px}
+.ploc{font-size:10px;color:var(--sub);margin-bottom:7px}
+.pspecs{display:flex;gap:10px;font-size:10px;color:var(--dim);margin-bottom:7px}
+.ptags{display:flex;gap:3px;flex-wrap:wrap}
+.ptag{font-size:9px;padding:2px 6px;border-radius:3px;font-weight:500}
+.ptag.cl{background:var(--cl-bg);color:var(--cl)}
+.ptag.inv{background:var(--inv-bg);color:var(--inv)}
+.ptag.ag{background:var(--ag-bg);color:var(--ag)}
+
+/* ══════════════════════════════════
+   TAB 3 · KEYS (ex Matches+Mensajes)
+══════════════════════════════════ */
+#t-keys{background:var(--bg)}
+.keys-layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 54px)}
+.conv-col{background:var(--s1);border-right:1px solid var(--border);height:100%;display:flex;flex-direction:column}
+.conv-top{padding:16px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.conv-top h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.conv-top h3 span{font-size:13px}
+.conv-search{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none}
+.conv-search::placeholder{color:var(--dim)}
+.status-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.stab{flex:1;padding:9px 4px;font-size:11px;font-weight:500;text-align:center;cursor:pointer;color:var(--sub);border:none;background:transparent;font-family:'Inter',sans-serif;transition:all .18s;border-bottom:2px solid transparent}
+.stab:hover{color:var(--text)}
+.stab.active{color:var(--cl);border-bottom-color:var(--cl)}
+.stab-count{display:inline-block;border-radius:10px;padding:1px 5px;font-size:9px;font-weight:700;margin-left:3px}
+.stab-count.blue{background:var(--cl-bg);color:var(--cl)}
+.stab-count.amber{background:var(--ag-bg);color:var(--ag)}
+.stab-count.red{background:var(--red-bg);color:var(--red)}
+.stab-count.dim{background:var(--s3);color:var(--sub)}
+.conv-list{flex:1;overflow-y:auto}
+.conv-item{display:flex;gap:10px;padding:12px 16px;cursor:pointer;transition:background .18s;border-bottom:1px solid var(--border);align-items:flex-start;position:relative}
+.conv-item:hover{background:var(--s2)}
+.conv-item.active{background:var(--s2);border-left:2px solid var(--cl)}
+.conv-thumb{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:var(--s3)}
+.conv-info{flex:1;min-width:0}
+.conv-name{font-size:12px;font-weight:600;margin-bottom:2px;display:flex;align-items:center;justify-content:space-between}
+.conv-name span{font-size:10px;color:var(--dim);font-weight:400}
+.conv-prop{font-size:11px;color:var(--text);font-weight:500;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-preview{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+.conv-tags{display:flex;gap:4px;align-items:center}
+.ctag{font-size:9px;padding:1px 6px;border-radius:8px;font-weight:600}
+.ctag.active-k{background:var(--cl-bg);color:var(--cl)}
+.ctag.pending{background:var(--ag-bg);color:var(--ag)}
+.ctag.cancelled{background:var(--red-bg);color:var(--red)}
+.ctag.score{background:var(--inv-bg);color:var(--inv)}
+/* Lock status badges */
+.lock-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:14px;font-size:10px;font-weight:700;letter-spacing:.04em}
+.lock-badge.unlocked{background:var(--inv-bg);color:var(--inv);border:1px solid var(--inv-bd)}
+.lock-badge.waiting{background:var(--ag-bg);color:var(--ag);border:1px solid var(--ag-bd)}
+.lock-badge.locked{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+/* Lock status bar inside chat */
+.lock-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;gap:8px}
+.lock-bar.unlocked{background:var(--inv-bg)}
+.lock-bar.waiting{background:var(--ag-bg)}
+.lock-bar.locked{background:var(--red-bg)}
+.lock-bar .lb-text{font-size:11px;display:flex;align-items:center;gap:8px}
+.lock-bar.unlocked .lb-text{color:var(--inv)}
+.lock-bar.waiting .lb-text{color:var(--ag)}
+.lock-bar.locked .lb-text{color:var(--red)}
+.lock-bar .lb-action{font-size:11px;font-weight:600;cursor:pointer;padding:4px 12px;border-radius:6px;border:none;font-family:'Inter',sans-serif;white-space:nowrap}
+.lock-bar.unlocked .lb-action{background:var(--inv-bg);color:var(--inv);border:1px solid var(--inv-bd)}
+.lock-bar.waiting .lb-action{background:var(--ag-bg);color:var(--ag);border:1px solid var(--ag-bd)}
+.lock-bar.locked .lb-action{background:var(--cl-bg);color:var(--cl);border:1px solid var(--cl-bd)}
+.unread-dot{width:6px;height:6px;border-radius:50%;background:var(--cl);position:absolute;top:14px;right:14px}
+
+/* ── CHAT AREA ── */
+.chat-area{display:flex;flex-direction:column;height:100%;background:var(--bg);position:relative}
+.chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--dim)}
+.chat-empty .ce-icon{font-size:36px;opacity:.35}
+.chat-empty p{font-size:12px}
+
+.key-status-bar{padding:8px 20px;font-size:11px;display:flex;align-items:center;gap:8px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.key-status-bar.active-k{background:var(--inv-bg);border-bottom-color:var(--inv-bd);color:var(--inv)}
+.key-status-bar.pending{background:var(--ag-bg);border-bottom-color:var(--ag-bd);color:var(--ag)}
+.key-status-bar.cancelled{background:var(--red-bg);border-bottom-color:var(--red-bd);color:var(--red)}
+
+/* Chat header with 3 action buttons */
+.chat-header{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:11px;flex-shrink:0;flex-wrap:wrap}
+.ch-thumb{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--s3);flex-shrink:0}
+.ch-info .cn{font-size:13px;font-weight:600;margin-bottom:1px}
+.ch-info .cs{font-size:11px;color:var(--sub)}
+.ch-actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.cha-btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;border:1px solid var(--border2);background:transparent;color:var(--sub);white-space:nowrap}
+.cha-btn:hover{color:var(--text);border-color:var(--border2)}
+.cha-btn.cal:hover{color:var(--cl);border-color:var(--cl-bd)}
+.cha-btn.profile:hover{color:var(--ag);border-color:var(--ag-bd)}
+.cha-btn.apply{background:var(--cl);color:#fff;border-color:var(--cl)}
+.cha-btn.apply:hover{filter:brightness(1.1)}
+.cha-btn.apply.done{background:var(--inv-bg);color:var(--inv);border-color:var(--inv-bd)}
+
+/* Prop mini */
+.prop-mini{display:flex;gap:11px;align-items:center;background:var(--s2);border:1px solid var(--border2);border-radius:9px;padding:11px 14px;margin:12px 20px 0;flex-shrink:0}
+.pm-img{width:46px;height:46px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+.pm-price{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:500;color:var(--ag);margin-bottom:2px}
+.pm-name{font-size:12px;font-weight:600;margin-bottom:2px}
+.pm-sub{font-size:10px;color:var(--sub)}
+
+.chat-msgs{flex:1;overflow-y:auto;padding:14px 20px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:70%;display:flex;flex-direction:column;gap:3px}
+.msg.r{align-self:flex-start}
+.msg.s{align-self:flex-end}
+.msg-from{font-size:10px;color:var(--dim);margin-bottom:2px}
+.bubble{padding:9px 13px;border-radius:11px;font-size:12px;line-height:1.55}
+.msg.r .bubble{background:var(--s2);border:1px solid var(--border2);border-radius:3px 11px 11px 11px}
+.msg.s .bubble{background:var(--cl-bg);border:1px solid var(--cl-bd);border-radius:11px 3px 11px 11px}
+.msg-time{font-size:10px;color:var(--dim)}
+.msg.s .msg-time{text-align:right}
+.doc-bubble{background:var(--s2);border:1px solid var(--border2);border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:9px;max-width:260px}
+.doc-bubble .di{font-size:18px}
+.doc-bubble .dn{font-size:12px;font-weight:500;margin-bottom:2px}
+.doc-bubble .ds{font-size:10px;color:var(--sub)}
+
+/* Pending / Cancelled info cards */
+.info-card{margin:12px 20px;border-radius:10px;padding:14px;font-size:12px}
+.info-card.pending{background:var(--ag-bg);border:1px solid var(--ag-bd)}
+.info-card.cancelled{background:var(--red-bg);border:1px solid var(--red-bd)}
+.ic-title{font-weight:600;font-size:13px;margin-bottom:8px}
+.ic-title.amber{color:var(--ag)}.ic-title.red{color:var(--red)}
+.ic-item{padding:3px 0;font-size:11px;color:var(--sub);line-height:1.5}
+.ic-note{font-size:11px;color:var(--sub);margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)}
+.ic-action{display:inline-block;margin-top:10px;font-size:11px;font-weight:600;cursor:pointer;padding:5px 12px;border-radius:6px;border:none;font-family:'Inter',sans-serif;transition:all .18s}
+.ic-action.amber{background:var(--ag-bg);color:var(--ag);border:1px solid var(--ag-bd)}
+.ic-action.cl{background:var(--cl-bg);color:var(--cl);border:1px solid var(--cl-bd)}
+
+.chat-input-wrap{padding:12px 20px;border-top:1px solid var(--border);flex-shrink:0}
+.ci-row{display:flex;gap:7px;align-items:flex-end}
+.ci-inp{flex:1;background:var(--s2);border:1px solid var(--border2);border-radius:9px;padding:9px 13px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;resize:none;height:40px;transition:border-color .18s}
+.ci-inp:focus{border-color:var(--cl)}
+.ci-send{width:38px;height:38px;border-radius:9px;background:var(--cl);border:none;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:filter .18s}
+.ci-send:hover{filter:brightness(1.1)}
+.ci-tools{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.ci-tool{font-size:10px;color:var(--sub);cursor:pointer;padding:4px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;font-family:'Inter',sans-serif;transition:all .18s}
+.ci-tool:hover{color:var(--cl);border-color:var(--cl-bd)}
+
+/* ── MODAL OVERLAY ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--s1);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:520px;max-height:82vh;overflow-y:auto;padding:28px;position:relative}
+.modal-close{position:absolute;top:16px;right:16px;background:var(--s2);border:1px solid var(--border2);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--sub);transition:color .18s}
+.modal-close:hover{color:var(--text)}
+.modal h2{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:4px}
+.modal p{font-size:12px;color:var(--sub);margin-bottom:20px}
+
+/* Calendar */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-header h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400}
+.cal-nav{display:flex;gap:6px}
+.cal-nav button{background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s}
+.cal-nav button:hover{color:var(--text)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px}
+.cal-day-label{text-align:center;font-size:10px;font-weight:600;color:var(--dim);padding:4px 0;letter-spacing:.06em}
+.cal-day{text-align:center;padding:8px 4px;border-radius:7px;font-size:12px;cursor:pointer;transition:all .18s;color:var(--sub);border:1px solid transparent}
+.cal-day:hover:not(.empty):not(.past){background:var(--s2);color:var(--text)}
+.cal-day.available{color:var(--text);border-color:var(--border)}
+.cal-day.available:hover{border-color:var(--cl);background:var(--cl-bg);color:var(--cl)}
+.cal-day.selected{background:var(--cl);color:#fff;border-color:var(--cl)}
+.cal-day.past{opacity:.3;cursor:default}
+.cal-day.empty{cursor:default}
+
+.time-slots{margin-bottom:18px}
+.time-slots label{display:block;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.slots{display:flex;flex-wrap:wrap;gap:6px}
+.slot{padding:6px 12px;border-radius:7px;font-size:12px;font-weight:500;border:1px solid var(--border2);cursor:pointer;transition:all .18s;color:var(--sub);background:transparent}
+.slot:hover{border-color:var(--cl);color:var(--cl)}
+.slot.selected{background:var(--cl-bg);border-color:var(--cl);color:var(--cl)}
+.slot.taken{opacity:.3;cursor:default;text-decoration:line-through}
+
+.visit-note{background:var(--s2);border-radius:8px;padding:12px;font-size:11px;color:var(--sub);margin-bottom:16px;line-height:1.6}
+.modal-confirm-btn{width:100%;background:var(--cl);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:filter .18s}
+.modal-confirm-btn:hover{filter:brightness(1.1)}
+.modal-confirm-btn:disabled{opacity:.4;cursor:default}
+
+/* Agency profile modal */
+.agency-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.ag-logo{width:52px;height:52px;border-radius:12px;background:var(--ag-bg);border:1px solid var(--ag-bd);display:flex;align-items:center;justify-content:center;font-size:22px}
+.ag-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;margin-bottom:2px}
+.ag-meta{font-size:11px;color:var(--sub)}
+.ag-badges{display:flex;gap:6px;margin-top:6px}
+.ag-badge{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;background:var(--ag-bg);color:var(--ag);border:1px solid var(--ag-bd)}
+.ag-stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.ag-stat{background:var(--s2);border-radius:8px;padding:12px;text-align:center}
+.ag-stat .asv{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;display:block;margin-bottom:2px}
+.ag-stat .ask{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.08em}
+.ag-info-row{display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);color:var(--sub)}
+.ag-info-row:last-child{border-bottom:none}
+.ag-info-row span:last-child{color:var(--text);font-weight:500}
+.agent-list{margin-top:14px}
+.agent-item{display:flex;align-items:center;gap:10px;padding:9px;background:var(--s2);border-radius:8px;margin-bottom:6px;font-size:12px}
+.agent-av{width:32px;height:32px;border-radius:50%;background:var(--ag-bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--ag)}
+.agent-name{font-weight:500;flex:1}
+.agent-role{font-size:10px;color:var(--sub)}
+
+/* Apply modal */
+.apply-section{margin-bottom:16px}
+.apply-section h4{font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text)}
+.apply-doc-row{display:flex;align-items:center;gap:9px;background:var(--s2);border:1px solid var(--border2);border-radius:7px;padding:9px 11px;margin-bottom:6px;font-size:11px}
+.apply-doc-row .di{font-size:15px}
+.apply-doc-row .dn{flex:1;font-weight:500}
+.apply-doc-row .ds{font-size:10px;color:var(--inv);font-weight:600}
+.apply-doc-row .dm{font-size:10px;color:var(--red);font-weight:600}
+.apply-missing{background:var(--red-bg);border:1px solid var(--red-bd);border-radius:8px;padding:11px;font-size:11px;color:var(--sub);line-height:1.6;margin-bottom:12px}
+.apply-missing b{color:var(--red)}
+.apply-ok{background:var(--inv-bg);border:1px solid var(--inv-bd);border-radius:8px;padding:11px;font-size:11px;color:var(--inv);margin-bottom:12px}
+
+/* ══════════════════════════════════
+   TAB 4 · PERFIL
+══════════════════════════════════ */
+#t-profile{background:var(--bg)}
+.profile-layout{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 54px)}
+.prof-left{padding:24px 28px;overflow-y:auto;height:100%}
+.prof-right{background:var(--s1);border-left:1px solid var(--border);padding:24px 28px;overflow-y:auto;height:100%}
+.ph-top{display:flex;align-items:center;gap:13px;margin-bottom:12px}
+.ph-av{width:50px;height:50px;border-radius:50%;background:var(--cl-bg);border:2px solid var(--cl-bd);display:flex;align-items:center;justify-content:center;font-size:20px}
+.ph-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;margin-bottom:2px}
+.ph-sub{font-size:11px;color:var(--sub)}
+.prog-wrap .pl{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-bottom:4px}
+.prog-wrap .pl b{color:var(--cl)}
+.sep{font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:15px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.frow{margin-bottom:11px}
+.frow label{display:block;font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.finp{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color .18s}
+.finp:focus{border-color:var(--cl)}
+.frow2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px}
+.fpills{display:flex;gap:4px;flex-wrap:wrap}
+.fpill{padding:5px 10px;border-radius:6px;border:1px solid var(--border2);font-size:11px;font-weight:500;cursor:pointer;transition:all .18s;color:var(--sub);background:transparent}
+.fpill.active{background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)}
+.doc-box{background:var(--s2);border:1px dashed var(--border2);border-radius:8px;padding:16px;text-align:center;font-size:11px;color:var(--sub);cursor:pointer;transition:border-color .18s;margin-bottom:10px}
+.doc-box:hover{border-color:var(--cl);color:var(--cl)}
+.doc-ok{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--border2);border-radius:7px;padding:9px 11px;margin-bottom:6px;font-size:11px}
+.doc-ok .di{font-size:15px}.doc-ok .dn{flex:1;font-weight:500}.doc-ok .ds{font-size:10px;color:var(--inv);font-weight:600}
+.consent-box{background:var(--cl-bg);border:1px solid var(--cl-bd);border-radius:7px;padding:11px;font-size:11px;color:var(--sub);line-height:1.6;margin-bottom:12px}
+.consent-box b{color:var(--cl)}
+.save-btn{width:100%;background:var(--cl);color:#fff;border:none;border-radius:7px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:filter .18s}
+.save-btn:hover{filter:brightness(1.1)}
+.pref-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:11px}
+.pref-card h4{font-size:12px;font-weight:600;margin-bottom:9px}
+.pref-row{display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--sub)}
+.pref-row:last-child{border-bottom:none}
+.pref-row span:last-child{color:var(--text);font-weight:500}
+.keys-overview{background:var(--cl-bg);border:1px solid var(--cl-bd);border-radius:10px;padding:14px;margin-bottom:11px}
+.keys-overview h4{font-size:12px;font-weight:600;color:var(--cl);margin-bottom:8px}
+.ko-num{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;color:var(--cl);margin-bottom:3px}
+.ko-sub{font-size:11px;color:var(--sub);margin-bottom:10px}
+.key-row{display:flex;align-items:center;gap:8px;font-size:11px;padding:7px;background:rgba(255,255,255,.03);border-radius:6px;margin-bottom:5px}
+.key-row .kp{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:500;flex:1}
+.key-row .km{font-weight:700;color:var(--ag)}
+.key-row .kl{font-size:10px;color:var(--sub)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo" onclick="showTab('t-home')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="11" stroke="#B8934A" stroke-width="0.6" opacity="0.3"/>
+      <polygon points="14,3 8,13 12,13 10,21 17,11 13,11" fill="#B8934A" opacity="0.7"/>
+    </svg>
+    <div class="logo-word">REALTHOR</div>
+  </div>
+  <div class="nav-tabs">
+    <button class="ntab active" onclick="showTab('t-home')">Inicio</button>
+    <button class="ntab" onclick="showTab('t-search')">Buscar</button>
+    <button class="ntab ntab-has-dot" onclick="showTab('t-keys')">Keys</button>
+    <button class="ntab" onclick="showTab('t-profile')">Mi perfil</button>
+  </div>
+  <div class="nav-right">
+    <span class="badge-cl">Cliente</span>
+    <div class="avatar">MD</div>
+  </div>
+</nav>
+
+<!-- ══ MODALS ══ -->
+
+<!-- 1. Calendario visita -->
+<div class="modal-overlay" id="modal-cal">
+  <div class="modal">
+    <div class="modal-close" onclick="closeModal('modal-cal')">✕</div>
+    <h2>Agendar visita</h2>
+    <p id="cal-subtitle">Selecciona un día y hora disponible</p>
+    <div class="cal-header">
+      <h3>Mayo 2025</h3>
+      <div class="cal-nav"><button>‹</button><button>›</button></div>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="time-slots">
+      <label>Horarios disponibles</label>
+      <div class="slots" id="time-slots"></div>
+    </div>
+    <div class="visit-note">📍 La agencia confirmará la visita en un plazo de 24h. Recibirás un recordatorio por email y notificación en la app.</div>
+    <button class="modal-confirm-btn" id="cal-confirm-btn" disabled onclick="confirmVisit()">Solicitar visita</button>
+  </div>
+</div>
+
+<!-- 2. Ficha agencia -->
+<div class="modal-overlay" id="modal-agency">
+  <div class="modal">
+    <div class="modal-close" onclick="closeModal('modal-agency')">✕</div>
+    <h2>Ficha de agencia</h2>
+    <p>Información verificada por Realthor</p>
+    <div class="agency-header">
+      <div class="ag-logo">🏢</div>
+      <div>
+        <div class="ag-name" id="ag-modal-name">Nexo Andorra SL</div>
+        <div class="ag-meta" id="ag-modal-meta">Escaldes-Engordany · Andorra · Desde 2014</div>
+        <div class="ag-badges"><span class="ag-badge">✓ Verificada</span><span class="ag-badge">Realthor Partner</span></div>
+      </div>
+    </div>
+    <div class="ag-stat-row">
+      <div class="ag-stat"><span class="asv">47</span><span class="ask">Propiedades</span></div>
+      <div class="ag-stat"><span class="asv">98%</span><span class="ask">Valoración</span></div>
+      <div class="ag-stat"><span class="asv">11 años</span><span class="ask">Experiencia</span></div>
+    </div>
+    <div class="ag-info-row"><span>Especialidad</span><span>Residencial · Inversión</span></div>
+    <div class="ag-info-row"><span>Idiomas</span><span>ES · FR · EN · CA</span></div>
+    <div class="ag-info-row"><span>Zona de actuación</span><span>Andorra · Pirineos</span></div>
+    <div class="ag-info-row"><span>Licencia</span><span>AND-2014-0087</span></div>
+    <div class="ag-info-row"><span>Teléfono</span><span>+376 800 123</span></div>
+    <div class="ag-info-row"><span>Email</span><span>info@nexoandorra.ad</span></div>
+    <div class="agent-list">
+      <div style="font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Agentes</div>
+      <div class="agent-item"><div class="agent-av">JM</div><div><div class="agent-name">Joan Martí</div><div class="agent-role">Director comercial</div></div></div>
+      <div class="agent-item"><div class="agent-av">SR</div><div><div class="agent-name">Sofia Roca</div><div class="agent-role">Agente senior</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Postular -->
+<div class="modal-overlay" id="modal-apply">
+  <div class="modal">
+    <div class="modal-close" onclick="closeModal('modal-apply')">✕</div>
+    <h2>Postular a esta propiedad</h2>
+    <p id="apply-subtitle">Tu perfil y documentación se enviarán a la agencia</p>
+    <div class="apply-section">
+      <h4>📋 Tu perfil</h4>
+      <div class="apply-ok">✓ Perfil completado al 68% — suficiente para postular</div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.7;margin-bottom:12px">
+        <b style="color:var(--text)">Marie Dupont</b> · No-residente francesa · Compradora<br>
+        Presupuesto: 600k–1.000k € · Domiciliar sociedad: Sí · Mascotas: Sí
+      </div>
+    </div>
+    <div class="apply-section">
+      <h4>📄 Documentación adjunta</h4>
+      <div class="apply-doc-row"><div class="di">🪪</div><div class="dn">Pasaporte_Marie_Dupont.pdf</div><div class="ds">✓ Verificado</div></div>
+      <div class="apply-doc-row"><div class="di">🏦</div><div class="dn">Extractos_BNP_Mar2025.pdf</div><div class="ds">✓ Cargado</div></div>
+      <div class="apply-doc-row"><div class="di">📄</div><div class="dn">Declaración de origen de fondos</div><div class="dm">⚠ Pendiente</div></div>
+      <div class="apply-missing"><b>Documento pendiente:</b> La declaración de origen de fondos es recomendable pero no bloquea la postulación. Puedes añadirla desde tu perfil.</div>
+    </div>
+    <button class="modal-confirm-btn" onclick="submitApply()">Enviar postulación →</button>
+  </div>
+</div>
+
+<!-- ══ TAB 1 · INICIO ══ -->
+<div id="t-home" class="screen active">
+  <div class="home-layout">
+    <div class="home-left">
+      <div class="hl-av">👤</div>
+      <div class="hl-name">Marie Dupont</div>
+      <div class="hl-sub">No-residente · Francia · Compradora</div>
+      <div class="prog-mini">
+        <div class="pl"><span>Perfil</span><b>68%</b></div>
+        <div class="prog-track"><div class="prog-fill" style="width:68%"></div></div>
+      </div>
+      <div class="hl-sep">Lo que busco</div>
+      <div class="hl-row"><div class="hl-dot"></div><div>Tipo: <b>Apartamento / Ático</b></div></div>
+      <div class="hl-row"><div class="hl-dot"></div><div>Precio máx: <b>1.000.000 €</b></div></div>
+      <div class="hl-row"><div class="hl-dot"></div><div>Habitaciones: <b>3+</b></div></div>
+      <div class="hl-row"><div class="hl-dot"></div><div>Zona: <b>Andorra, BCN</b></div></div>
+      <div class="hl-sep">Criterios activos</div>
+      <div class="hl-tags">
+        <span class="hl-tag">No-residente</span>
+        <span class="hl-tag">Sociedad OK</span>
+        <span class="hl-tag">Mascotas</span>
+        <span class="hl-tag">Terraza</span>
+      </div>
+      <div class="hl-sep">Mis Keys</div>
+      <div class="keys-summary">
+        <div class="key-mini" onclick="showTab('t-keys')"><div class="km-icon">🏡</div><div class="km-name">Àtic Escaldes</div><div class="km-status active">Activa</div></div>
+        <div class="key-mini" onclick="showTab('t-keys')"><div class="km-icon">🏔️</div><div class="km-name">Chalet Ordino</div><div class="km-status active">Activa</div></div>
+        <div class="key-mini" onclick="showTab('t-keys')"><div class="km-icon">⏳</div><div class="km-name">Villa Pas de la Casa</div><div class="km-status pending">Pendiente</div></div>
+        <div class="key-mini" onclick="showTab('t-keys')"><div class="km-icon">🚫</div><div class="km-name">Piso Escaldes</div><div class="km-status cancelled">Rechazada</div></div>
+      </div>
+      <button class="edit-btn" onclick="showTab('t-profile')">Editar perfil →</button>
+    </div>
+
+    <div class="home-center">
+      <div class="feed-header">
+        <div><h2>Propiedades para ti</h2><p>18 propiedades encajan con tu búsqueda</p></div>
+      </div>
+      <div class="feed-filters">
+        <div class="ff on">Todas</div>
+        <div class="ff">Nuevas hoy</div>
+        <div class="ff">Mejor score</div>
+        <div class="ff">Precio ↑</div>
+        <div class="ff">Alquiler</div>
+        <div class="ff">Venta</div>
+      </div>
+      <div id="feed-cards"></div>
+    </div>
+
+    <div class="home-right">
+      <div class="hr-title">Actividad reciente</div>
+      <div class="notif"><div class="ni-ic cl">🏠</div><div class="ni-b"><p>Nueva propiedad encaja con tu búsqueda: <b>Àtic Escaldes</b></p><span>Hace 2h</span></div></div>
+      <div class="notif"><div class="ni-ic ag">💬</div><div class="ni-b"><p>Nexo Andorra SL ha respondido en tu Key</p><span>Hace 5h</span></div></div>
+      <div class="notif"><div class="ni-ic inv">📄</div><div class="ni-b"><p>Informe jurídico listo: Compra no-residente</p><span>Ayer</span></div></div>
+      <div class="notif"><div class="ni-ic cl">📅</div><div class="ni-b"><p>Visita confirmada: <b>Chalet Ordino</b> · Vie 10 may</p><span>Ayer</span></div></div>
+      <div class="notif"><div class="ni-ic red">⚠️</div><div class="ni-b"><p>Key pendiente: falta declaración de fondos</p><span>Hace 2 días</span></div></div>
+      <div class="saved-sec">
+        <div class="hr-title" style="margin-top:16px">Guardadas</div>
+        <div class="saved-card"><div class="sc-top"><span class="sc-price">850.000 €</span><span class="sc-score">8.4</span></div><div class="sc-loc">📍 Escaldes-Engordany · 3 hab.</div></div>
+        <div class="saved-card"><div class="sc-top"><span class="sc-price">620.000 €</span><span class="sc-score">8.0</span></div><div class="sc-loc">📍 La Massana · 3 hab.</div></div>
+        <div class="saved-card"><div class="sc-top"><span class="sc-price">4.500 €/mes</span><span class="sc-score">7.8</span></div><div class="sc-loc">📍 Andorra la Vella · 2 hab.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 2 · BUSCAR ══ -->
+<div id="t-search" class="screen">
+  <div class="search-layout">
+    <div class="filters-col">
+      <div class="fc-head">Buscar</div>
+      <div class="ai-block">
+        <label>IA · Búsqueda natural</label>
+        <textarea class="ai-ta" placeholder="Describe lo que buscas...">No-residente, domiciliar sociedad, rendimiento &gt;5%</textarea>
+        <button class="ai-go">Buscar con IA →</button>
+      </div>
+      <div class="fgroup"><label>Operación</label><div class="chips"><div class="chip on">Compra</div><div class="chip">Alquiler corto</div><div class="chip">Alquiler largo</div></div></div>
+      <div class="fgroup"><label>Tipo</label><div class="chips"><div class="chip on">Apartamento</div><div class="chip on">Ático</div><div class="chip">Casa</div><div class="chip">Estudio</div><div class="chip">Loft</div><div class="chip">Oficina</div></div></div>
+      <div class="fgroup"><label>Precio (€)</label><div class="rrow"><input class="rinp" placeholder="Mínimo"><input class="rinp" placeholder="Máximo"></div></div>
+      <div class="fgroup"><label>Superficie (m²)</label><div class="rrow"><input class="rinp" placeholder="Mín"><input class="rinp" placeholder="Máx"></div></div>
+      <div class="fgroup"><label>Habitaciones</label><div class="chips"><div class="chip">1+</div><div class="chip">2+</div><div class="chip on">3+</div><div class="chip">4+</div></div></div>
+      <div class="fgroup"><label>Características</label><div class="chips"><div class="chip on">Terraza</div><div class="chip on">Parking</div><div class="chip">Jardín</div><div class="chip on">Mascotas</div><div class="chip">Piscina</div><div class="chip">Ascensor</div><div class="chip">Trastero</div><div class="chip">PMR</div><div class="chip">Orient. sur</div></div></div>
+      <div class="fgroup"><label>Criterios IA</label><div class="chips"><div class="chip on">No-residente</div><div class="chip on">Domiciliar sociedad</div><div class="chip">Alquiler turístico</div><div class="chip on">Inv. extranjero</div><div class="chip">Residencia fiscal</div></div></div>
+      <div class="fgroup"><label>Rendimiento mínimo</label><div class="chips"><div class="chip">&gt;3%</div><div class="chip on">&gt;5%</div><div class="chip">&gt;7%</div><div class="chip">&gt;10%</div></div></div>
+      <button class="more-btn">+ Filtros fiscales y urbanísticos →</button>
+    </div>
+    <div class="results-col">
+      <div class="rh"><div><h2>234 propiedades</h2><p>Compra · No-residente · Rendimiento &gt;5%</p></div><select class="rsort"><option>Score IA ↓</option><option>Precio ↑</option><option>Precio ↓</option><option>Rendimiento ↓</option></select></div>
+      <div class="pgrid" id="pgrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 3 · KEYS ══ -->
+<div id="t-keys" class="screen">
+  <div class="keys-layout">
+    <div class="conv-col">
+      <div class="conv-top">
+        <h3>Keys <span>🗝️</span></h3>
+        <input class="conv-search" type="text" placeholder="Buscar propiedad o agencia...">
+      </div>
+      <div class="status-tabs">
+        <button class="stab active" onclick="filterKeys(this,'all')">Todas <span class="stab-count blue">8</span></button>
+        <button class="stab" onclick="filterKeys(this,'active')">Unlocked <span class="stab-count blue">4</span></button>
+        <button class="stab" onclick="filterKeys(this,'pending')">Waiting <span class="stab-count amber">2</span></button>
+        <button class="stab" onclick="filterKeys(this,'cancelled')">Locked <span class="stab-count red">2</span></button>
+      </div>
+      <div class="conv-list">
+
+        <!-- UNLOCKED: dossier validado, chat activo -->
+        <div class="conv-item active" data-kstatus="active" onclick="openKey('nexo',this)">
+          <div class="conv-thumb">🏢</div>
+          <div class="conv-info">
+            <div class="conv-name">Nexo Andorra SL <span>10:24</span></div>
+            <div class="conv-prop">Àtic Escaldes · 850.000 €</div>
+            <div class="conv-preview">Le envío el checklist de documentos...</div>
+            <div class="conv-tags"><span class="lock-badge unlocked">🔓 Unlocked</span><span class="ctag score">8.4</span></div>
+          </div>
+          <div class="unread-dot"></div>
+        </div>
+
+        <div class="conv-item" data-kstatus="active" onclick="openKey('alpine',this)">
+          <div class="conv-thumb">🏔️</div>
+          <div class="conv-info">
+            <div class="conv-name">Alpine Realty <span>Ayer</span></div>
+            <div class="conv-prop">Chalet Ordino · 1.200.000 €</div>
+            <div class="conv-preview">Visita confirmada para el viernes...</div>
+            <div class="conv-tags"><span class="lock-badge unlocked">🔓 Unlocked</span><span class="ctag score">9.1</span></div>
+          </div>
+          <div class="unread-dot"></div>
+        </div>
+
+        <div class="conv-item" data-kstatus="active" onclick="openKey('ia',this)">
+          <div class="conv-thumb">🤖</div>
+          <div class="conv-info">
+            <div class="conv-name">Realthor IA <span>Ayer</span></div>
+            <div class="conv-prop">Asistente jurídico</div>
+            <div class="conv-preview">Tu informe de compra no-residente...</div>
+            <div class="conv-tags"><span class="lock-badge unlocked">🔓 Unlocked</span></div>
+          </div>
+          <div class="unread-dot"></div>
+        </div>
+
+        <div class="conv-item" data-kstatus="active" onclick="openKey('pirineus',this)">
+          <div class="conv-thumb">🏡</div>
+          <div class="conv-info">
+            <div class="conv-name">Immobiliaria Pirineus <span>Lun</span></div>
+            <div class="conv-prop">La Massana · 620.000 €</div>
+            <div class="conv-preview">El bien sigue disponible...</div>
+            <div class="conv-tags"><span class="lock-badge unlocked">🔓 Unlocked</span><span class="ctag score">8.0</span></div>
+          </div>
+        </div>
+
+        <!-- WAITING TO UNLOCK: postulación enviada, agencia revisando -->
+        <div class="conv-item" data-kstatus="pending" onclick="openKey('pending1',this)">
+          <div class="conv-thumb">🏰</div>
+          <div class="conv-info">
+            <div class="conv-name">Luxury Andorra <span>Dom</span></div>
+            <div class="conv-prop">Villa Pas de la Casa · 3.100.000 €</div>
+            <div class="conv-preview">Esperando revisión de tu dossier...</div>
+            <div class="conv-tags"><span class="lock-badge waiting">⏳ Waiting to unlock</span><span class="ctag score">9.4</span></div>
+          </div>
+        </div>
+
+        <div class="conv-item" data-kstatus="pending" onclick="openKey('pending2',this)">
+          <div class="conv-thumb">🏠</div>
+          <div class="conv-info">
+            <div class="conv-name">Andorra Prime <span>Sáb</span></div>
+            <div class="conv-prop">Estudio Canillo · 2.800 €/mes</div>
+            <div class="conv-preview">Completa tu perfil para desbloquear</div>
+            <div class="conv-tags"><span class="lock-badge waiting">⏳ Waiting to unlock</span><span class="ctag score">7.2</span></div>
+          </div>
+        </div>
+
+        <!-- LOCKED: rechazadas o criterios no cumplidos -->
+        <div class="conv-item" data-kstatus="cancelled" onclick="openKey('cancelled1',this)">
+          <div class="conv-thumb" style="opacity:.5">🔒</div>
+          <div class="conv-info" style="opacity:.65">
+            <div class="conv-name">Escaldes Homes <span>Vie</span></div>
+            <div class="conv-prop">Piso Escaldes · 480.000 €</div>
+            <div class="conv-preview">No cumples los requisitos del propietario</div>
+            <div class="conv-tags"><span class="lock-badge locked">🔒 Locked</span></div>
+          </div>
+        </div>
+
+        <div class="conv-item" data-kstatus="cancelled" onclick="openKey('cancelled2',this)">
+          <div class="conv-thumb" style="opacity:.5">🔒</div>
+          <div class="conv-info" style="opacity:.65">
+            <div class="conv-name">Ordino Invest <span>Jue</span></div>
+            <div class="conv-prop">Chalet Ordino · 890.000 €</div>
+            <div class="conv-preview">El bien no acepta mascotas — criterio bloq.</div>
+            <div class="conv-tags"><span class="lock-badge locked">🔒 Locked</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-area" id="chat-area">
+      <div class="chat-empty">
+        <div class="ce-icon">🗝️</div>
+        <p>Selecciona una Key para ver la conversación</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 4 · PERFIL ══ -->
+<div id="t-profile" class="screen">
+  <div class="profile-layout">
+    <div class="prof-left">
+      <div class="ph-top">
+        <div class="ph-av">👤</div>
+        <div><div class="ph-name">Marie Dupont</div><div class="ph-sub">Perfil Cliente · No-residente · Compradora</div></div>
+      </div>
+      <div class="prog-wrap">
+        <div class="pl"><span>Perfil completado</span><b>68%</b></div>
+        <div class="prog-track"><div class="prog-fill" style="width:68%"></div></div>
+      </div>
+      <div class="sep">Datos personales</div>
+      <div class="frow"><label>Nombre y apellidos</label><input class="finp" value="Marie Dupont"></div>
+      <div class="frow2"><div><label>Fecha nacimiento</label><input class="finp" value="14/03/1985"></div><div><label>Nacionalidad</label><input class="finp" value="Francesa"></div></div>
+      <div class="frow2"><div><label>País de residencia</label><input class="finp" value="Francia"></div><div><label>Ciudad</label><input class="finp" value="París"></div></div>
+      <div class="frow2"><div><label>Email</label><input class="finp" value="marie@email.fr"></div><div><label>Teléfono</label><input class="finp" value="+33 6 12 34 56 78"></div></div>
+      <div class="frow"><label>Situación personal</label><div class="fpills"><div class="fpill active">Soltero/a</div><div class="fpill">Pareja</div><div class="fpill">Casado/a</div><div class="fpill">Familia</div></div></div>
+      <div class="sep">Objetivo y presupuesto</div>
+      <div class="frow"><label>Objetivo</label><div class="fpills"><div class="fpill active">Comprar</div><div class="fpill">Alquilar</div><div class="fpill">Invertir</div><div class="fpill">Ambos</div></div></div>
+      <div class="frow2"><div><label>Presupuesto mín.</label><input class="finp" value="600.000 €"></div><div><label>Presupuesto máx.</label><input class="finp" value="1.000.000 €"></div></div>
+      <div class="frow"><label>Duración</label><div class="fpills"><div class="fpill">Corto</div><div class="fpill">Medio</div><div class="fpill active">Largo (+3 años)</div></div></div>
+      <div class="sep">Situación legal</div>
+      <div class="frow"><label>Situación fiscal</label><div class="fpills"><div class="fpill">Residente</div><div class="fpill active">No-residente</div><div class="fpill">En trámite</div></div></div>
+      <div class="frow"><label>Solicitud residencia andorrana</label><div class="fpills"><div class="fpill">Sí</div><div class="fpill active">No</div><div class="fpill">Interesado/a</div></div></div>
+      <div class="frow"><label>Entidad bancaria</label><input class="finp" placeholder="BNP Paribas, Andbank..."></div>
+      <div class="frow"><label>Sociedad (si aplica)</label><input class="finp" placeholder="Nombre de la sociedad"></div>
+      <div class="sep">Documentación</div>
+      <div class="doc-ok"><div class="di">🪪</div><div class="dn">Pasaporte_Marie_Dupont.pdf</div><div class="ds">✓ Verificado</div></div>
+      <div class="doc-ok"><div class="di">🏦</div><div class="dn">Extractos_BNP_Mar2025.pdf</div><div class="ds">✓ Cargado</div></div>
+      <div class="doc-box">⬆ Añadir documentos<br><span style="font-size:10px;color:var(--dim)">Declaración de fondos · NIE · Poder notarial</span></div>
+      <div class="consent-box"><b>✓ RGPD aceptado</b><br>Acepto el tratamiento de mis datos para el matching y la comunicación con agencias en Realthor.</div>
+      <button class="save-btn">Guardar y actualizar Keys</button>
+    </div>
+    <div class="prof-right">
+      <div class="keys-overview">
+        <h4>Mis Keys activas</h4>
+        <div class="ko-num">4</div>
+        <div class="ko-sub">Keys activas · 2 pendientes · 2 rechazadas</div>
+        <div class="key-row"><span>🏡</span><span class="kp">Àtic Escaldes</span><span class="kl">AND</span><span class="km">8.4</span></div>
+        <div class="key-row"><span>🏔️</span><span class="kp">Chalet Ordino</span><span class="kl">AND</span><span class="km">9.1</span></div>
+        <div class="key-row"><span>🏘️</span><span class="kp">La Massana</span><span class="kl">AND</span><span class="km">8.0</span></div>
+        <div class="key-row"><span>🤖</span><span class="kp">Asistente jurídico</span><span class="kl">IA</span><span class="km">—</span></div>
+      </div>
+      <div class="pref-card"><h4>🏠 Preferencias de inmueble</h4>
+        <div class="chips" style="margin-bottom:10px"><div class="chip on">Apartamento</div><div class="chip on">Ático</div><div class="chip">Casa</div></div>
+        <div class="pref-row"><span>Habitaciones mín.</span><span>3+</span></div>
+        <div class="pref-row"><span>Superficie mín.</span><span>80 m²</span></div>
+        <div class="pref-row"><span>Terraza</span><span>Obligatorio</span></div>
+        <div class="pref-row"><span>Parking</span><span>Sí</span></div>
+        <div class="pref-row"><span>Mascotas</span><span>Obligatorio</span></div>
+      </div>
+      <div class="pref-card"><h4>📍 Ubicaciones</h4>
+        <div class="chips"><div class="chip on">Escaldes</div><div class="chip on">Andorra la Vella</div><div class="chip on">La Massana</div><div class="chip">Ordino</div><div class="chip">Barcelona</div></div>
+      </div>
+      <div class="pref-card"><h4>⚡ Criterios IA</h4>
+        <div class="pref-row"><span>Perfil fiscal</span><span>No-residente</span></div>
+        <div class="pref-row"><span>Domiciliar sociedad</span><span>Obligatorio</span></div>
+        <div class="pref-row"><span>Rendimiento mínimo</span><span>&gt;5%</span></div>
+        <div class="pref-row"><span>Alquiler turístico</span><span>Valorado</span></div>
+      </div>
+      <div class="pref-card"><h4>💰 Financiero</h4>
+        <div class="pref-row"><span>Presupuesto</span><span>600k–1.000k €</span></div>
+        <div class="pref-row"><span>Forma de pago</span><span>Hipoteca + entrada</span></div>
+        <div class="pref-row"><span>Cash-flow mínimo</span><span>&gt;1.000 €/mes</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Tab nav
+function showTab(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const map={'t-home':0,'t-search':1,'t-keys':2,'t-profile':3};
+  document.querySelectorAll('.ntab')[map[id]].classList.add('active');
+}
+
+// ── Modals
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ── Calendar setup
+let selDay=null, selTime=null;
+const days=['L','M','X','J','V','S','D'];
+const avail={8:['10:00','11:30','16:00'],10:['09:30','12:00'],13:['10:00','17:00'],15:['11:00'],17:['10:30','12:30','16:30'],20:['09:00','11:00'],22:['10:00','14:00']};
+function buildCalendar(){
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML='';
+  days.forEach(d=>{const el=document.createElement('div');el.className='cal-day-label';el.textContent=d;grid.appendChild(el);});
+  // May 2025 starts Thursday (offset 3)
+  for(let i=0;i<3;i++){const el=document.createElement('div');el.className='cal-day empty';grid.appendChild(el);}
+  for(let d=1;d<=31;d++){
+    const el=document.createElement('div');
+    const isPast=d<7;
+    const isAvail=avail[d];
+    el.className='cal-day'+(isPast?' past':isAvail?' available':'');
+    el.textContent=d;
+    if(isAvail&&!isPast) el.onclick=()=>selectDay(d,el);
+    grid.appendChild(el);
+  }
+}
+function selectDay(d,el){
+  document.querySelectorAll('.cal-day').forEach(x=>x.classList.remove('selected'));
+  el.classList.add('selected'); selDay=d; selTime=null;
+  const slots=document.getElementById('time-slots');
+  slots.innerHTML='';
+  (avail[d]||[]).forEach(t=>{
+    const s=document.createElement('div');s.className='slot';s.textContent=t;
+    s.onclick=()=>selectTime(t,s);slots.appendChild(s);
+  });
+  checkConfirmBtn();
+}
+function selectTime(t,el){
+  document.querySelectorAll('.slot').forEach(x=>x.classList.remove('selected'));
+  el.classList.add('selected'); selTime=t; checkConfirmBtn();
+}
+function checkConfirmBtn(){
+  const btn=document.getElementById('cal-confirm-btn');
+  btn.disabled=!(selDay&&selTime);
+}
+function confirmVisit(){
+  closeModal('modal-cal');
+  alert(`✅ Visita solicitada para el ${selDay} de mayo a las ${selTime}.\nRecibirás confirmación en breve.`);
+}
+
+// ── Apply
+function submitApply(){
+  closeModal('modal-apply');
+  // Mark apply button as done
+  const btn=document.querySelector('.cha-btn.apply');
+  if(btn){btn.textContent='✓ Postulación enviada';btn.classList.add('done');}
+}
+
+// ── Keys filter
+function filterKeys(el,status){
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.conv-item').forEach(item=>{
+    item.style.display=(status==='all'||item.dataset.kstatus===status)?'flex':'none';
+  });
+}
+
+// ── Keys data
+const keysData={
+  nexo:{lock:'unlocked',lockLabel:'🔓 Unlocked — Conversación activa · Dossier validado',
+    thumb:'🏢',name:'Nexo Andorra SL',sub:'Àtic Escaldes-Engordany · RT-2024-0847',applied:false,
+    prop:{emoji:'🏡',name:'Àtic Escaldes-Engordany',price:'850.000 €',sub:'109m² · 3 hab. · Score 8.4',bg:'#0a1508'},
+    msgs:[
+      {t:'r',from:'Nexo Andorra SL',text:'Bonjour Marie. El bien admite compra por no-residentes y es compatible con domiciliación de sociedad andorrana. ¿Tiene preguntas?',time:'Lun 5 may · 09:14'},
+      {t:'s',text:'Buenos días — ¿qué documentación necesito para iniciar la compra? Soy residente fiscal en Francia.',time:'Lun 5 may · 11:32'},
+      {t:'r',from:'Nexo Andorra SL',text:'Necesitará: pasaporte vigente, últimos 3 extractos bancarios, declaración de origen de fondos y poder notarial. El proceso tarda 4–6 semanas.',time:'Lun 5 may · 12:05'},
+      {t:'doc',from:'Nexo Andorra SL',name:'Checklist_Compra_NoResidente.pdf',size:'245 KB',time:'Lun 5 may · 12:07'},
+      {t:'s',text:'Perfecto. ¿Podría organizar una visita esta semana?',time:'Mar 6 may · 09:45'},
+      {t:'r',from:'Nexo Andorra SL',text:'Disponibilidad el viernes 10 de mayo a las 10:30h o el lunes 13 a las 16:00h. ¿Cuál le va mejor?',time:'Mar 6 may · 10:24'},
+    ]},
+  alpine:{lock:'unlocked',lockLabel:'🔓 Unlocked — Visita confirmada vie 10 mayo · 11:00h',
+    thumb:'🏔️',name:'Alpine Realty',sub:'Chalet Ordino · RT-2024-0612',applied:true,
+    prop:{emoji:'🏔️',name:'Chalet Ordino',price:'1.200.000 €',sub:'180m² · 4 hab. · Score 9.1',bg:'#0f0a04'},
+    msgs:[
+      {t:'r',from:'Alpine Realty',text:'Buenos días Marie. Le confirmamos la visita al Chalet Ordino para el viernes 10 de mayo a las 11:00h.',time:'Mar 6 may · 14:00'},
+      {t:'s',text:'Perfecto, allí estaré. ¿Hay parking?',time:'Mar 6 may · 15:30'},
+      {t:'r',from:'Alpine Realty',text:'Sí, puede aparcar en el acceso de la finca. Le enviamos la dirección exacta.',time:'Mar 6 may · 16:10'},
+    ]},
+  ia:{lock:'unlocked',lockLabel:'🔓 Unlocked — Asistente jurídico disponible 24h',
+    thumb:'🤖',name:'Realthor IA',sub:'Asistente jurídico y administrativo',applied:false,prop:null,
+    msgs:[
+      {t:'s',text:'¿Qué impuestos pagaré al comprar en Andorra siendo no-residente?',time:'Ayer · 10:00'},
+      {t:'r',from:'Realthor IA',text:'Como no-residente pagará IGI del 4.5% sobre el precio y gastos de notaría+registro del 1–2%. Sin impuesto de transmisiones como en España.',time:'Ayer · 10:01'},
+      {t:'s',text:'¿Y si quiero domiciliar una sociedad en el piso?',time:'Ayer · 10:05'},
+      {t:'r',from:'Realthor IA',text:'Perfectamente posible. Necesitará una SL andorrana (mínimo 3.000€ de capital). El proceso tarda ~4 semanas.',time:'Ayer · 10:05'},
+      {t:'doc',from:'Realthor IA',name:'Informe_Fiscal_NoResidente_AND.pdf',size:'312 KB',time:'Ayer · 10:06'},
+    ]},
+  pirineus:{lock:'unlocked',lockLabel:'🔓 Unlocked — Conversación activa',
+    thumb:'🏡',name:'Immobiliaria Pirineus',sub:'La Massana · RT-2024-0521',applied:false,
+    prop:{emoji:'🏘️',name:'Àtic La Massana',price:'620.000 €',sub:'95m² · 3 hab. · Score 8.0',bg:'#08040f'},
+    msgs:[
+      {t:'r',from:'Immobiliaria Pirineus',text:'Bonjour Madame Dupont. El bien está disponible y cumple sus criterios.',time:'Lun · 09:30'},
+      {t:'s',text:'¿Tiene terraza y se pueden tener mascotas?',time:'Lun · 11:00'},
+      {t:'r',from:'Immobiliaria Pirineus',text:'Sí, terraza de 30m² y el propietario acepta mascotas. ¿Le gustaría visitar?',time:'Lun · 12:15'},
+    ]},
+  pending1:{lock:'waiting',lockLabel:'⏳ Waiting to unlock — Tu dossier está siendo revisado por la agencia',
+    thumb:'🏰',name:'Luxury Andorra',sub:'Villa Pas de la Casa · RT-2024-0721',applied:true,
+    prop:{emoji:'🏰',name:'Villa Pas de la Casa',price:'3.100.000 €',sub:'320m² · 6 hab. · Score 9.4',bg:'#100804'},
+    waiting:{title:'⏳ Waiting to unlock',items:['✓ Postulación enviada el 4 mayo','✓ Dossier recibido por Luxury Andorra','⏳ La agencia está revisando tu documentación — plazo 24–48h','ℹ️ La Key se desbloqueará automáticamente cuando sea aprobada.'],action:'Ver estado de mi dossier →'},msgs:[]},
+  pending2:{lock:'waiting',lockLabel:'⏳ Waiting to unlock — Completa tu perfil para desbloquear',
+    thumb:'🏠',name:'Andorra Prime',sub:'Estudio Canillo · RT-2024-0903',applied:false,
+    prop:{emoji:'🏠',name:'Estudio Canillo',price:'2.800 €/mes',sub:'52m² · 1 hab. · Score 7.2',bg:'#050a05'},
+    waiting:{title:'⏳ Waiting to unlock',items:['📄 Falta: NIE o documento de identidad alternativo','🏦 Falta: Confirmación de entidad bancaria','ℹ️ La Key se desbloqueará cuando completes estos datos en tu perfil.'],action:'Completar perfil →'},msgs:[]},
+  cancelled1:{lock:'locked',lockLabel:'🔒 Locked — No cumples los requisitos del propietario',
+    thumb:'🔒',name:'Escaldes Homes',sub:'Piso Escaldes · RT-2024-0445',applied:false,
+    prop:{emoji:'🌆',name:'Piso Escaldes-Engordany',price:'480.000 €',sub:'78m² · 2 hab.',bg:'#04080f'},
+    locked:{title:'🔒 Key Locked',reasons:['🏠 El propietario exige residencia andorrana activa — tu perfil es no-residente.','💰 Fondos declarados inferiores al precio del bien.'],note:'Esta Key no puede desbloquearse con tu perfil actual. Hay 3 alternativas similares que sí admiten no-residentes.'},msgs:[]},
+  cancelled2:{lock:'locked',lockLabel:'🔒 Locked — Criterios del bien incompatibles con tu perfil',
+    thumb:'🔒',name:'Ordino Invest',sub:'Chalet Ordino · RT-2024-0388',applied:false,
+    prop:{emoji:'🏔️',name:'Chalet Ordino',price:'890.000 €',sub:'150m² · 4 hab.',bg:'#0f0a04'},
+    locked:{title:'🔒 Key Locked',reasons:['🏢 El bien no permite domiciliación de sociedades — criterio obligatorio en tu perfil.','🐾 El propietario no acepta mascotas — criterio marcado como obligatorio.'],note:'Hemos encontrado 3 propiedades similares que sí cumplen tus criterios.'},msgs:[]}
+};
+
+function openKey(key,el){
+  document.querySelectorAll('.conv-item').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  const d=keysData[key];
+  const ca=document.getElementById('chat-area');
+  const isUnlocked=d.lock==='unlocked', isWaiting=d.lock==='waiting', isLocked=d.lock==='locked';
+
+  // Lock bar
+  const lockAction=isWaiting?`<button class="lb-action" onclick="showTab('t-profile')">Ver perfil →</button>`:
+    isLocked?`<button class="lb-action" onclick="showTab('t-search')">Buscar alternativas →</button>`:'';
+  let html=`<div class="lock-bar ${d.lock}"><div class="lb-text">${d.lockLabel}</div>${lockAction}</div>`;
+
+  // Header actions
+  let acts='';
+  if(isUnlocked&&d.prop){
+    const al=d.applied?'✓ Enviada':'Postular', ac=d.applied?'cha-btn apply done':'cha-btn apply';
+    const applyOnclick = d.applied ? '' : "openModal('modal-apply')";
+    acts=`<button class="cha-btn cal" onclick="openModal('modal-cal')">📅 Agendar visita</button>
+      <button class="cha-btn profile" onclick="openModal('modal-agency')">🏢 Ficha agencia</button>
+      <button class="${ac}" onclick="${applyOnclick}">${al}</button>`;
+  } else if(isUnlocked){acts=`<button class="cha-btn">Nueva consulta</button>`;}
+  else if(isWaiting){acts=`<button class="cha-btn cal" onclick="showTab('t-profile')">Completar perfil →</button>`;}
+  else{acts=`<button class="cha-btn" onclick="showTab('t-search')">Buscar alternativas →</button>`;}
+
+  html+=`<div class="chat-header">
+    <div class="ch-thumb">${d.thumb}</div>
+    <div class="ch-info"><div class="cn">${d.name}</div><div class="cs">${d.sub}</div></div>
+    <div class="ch-actions">${acts}</div>
+  </div>`;
+
+  if(d.prop) html+=`<div class="prop-mini">
+    <div class="pm-img" style="background:linear-gradient(135deg,${d.prop.bg},#040404)">${d.prop.emoji}</div>
+    <div><div class="pm-name">${d.prop.name}</div><div class="pm-price">${d.prop.price}</div><div class="pm-sub">${d.prop.sub}</div></div>
+  </div>`;
+
+  if(d.waiting){
+    const items=d.waiting.items.map(i=>`<div style="padding:3px 0;font-size:11px;color:var(--sub);line-height:1.5">${i}</div>`).join('');
+    html+=`<div style="margin:12px 20px"><div style="background:var(--ag-bg);border:1px solid var(--ag-bd);border-radius:9px;padding:13px">
+      <div style="font-weight:600;color:var(--ag);margin-bottom:9px">${d.waiting.title}</div>${items}
+      <button style="margin-top:10px;background:var(--ag-bg);color:var(--ag);border:1px solid var(--ag-bd);border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="showTab('t-profile')">${d.waiting.action}</button>
+    </div></div>`;
+  }
+  if(d.locked){
+    const reasons=d.locked.reasons.map(r=>`<div style="padding:3px 0;font-size:11px;color:var(--sub);line-height:1.5">${r}</div>`).join('');
+    html+=`<div style="margin:12px 20px"><div style="background:var(--red-bg);border:1px solid var(--red-bd);border-radius:9px;padding:13px">
+      <div style="font-weight:600;color:var(--red);margin-bottom:9px">${d.locked.title}</div>${reasons}
+      <div style="font-size:11px;color:var(--sub);margin-top:9px;padding-top:8px;border-top:1px solid var(--red-bd)">${d.locked.note}</div>
+      <button style="margin-top:10px;background:var(--cl-bg);color:var(--cl);border:1px solid var(--cl-bd);border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="showTab('t-search')">Buscar alternativas →</button>
+    </div></div>`;
+  }
+
+  // Messages
+  let msgsContent='';
+  if(isWaiting) msgsContent=`<div style="text-align:center;padding:30px 20px;color:var(--dim)"><div style="font-size:28px;margin-bottom:10px">⏳</div><div style="font-size:13px;font-weight:500;color:var(--ag);margin-bottom:6px">Waiting to unlock</div><div style="font-size:12px">La conversación se activará cuando la agencia valide tu dossier.</div></div>`;
+  else if(isLocked) msgsContent=`<div style="text-align:center;padding:30px 20px;color:var(--dim)"><div style="font-size:28px;margin-bottom:10px">🔒</div><div style="font-size:13px;font-weight:500;color:var(--red);margin-bottom:6px">Key Locked</div><div style="font-size:12px">Esta conversación no está disponible.</div></div>`;
+  else if(d.msgs&&d.msgs.length) msgsContent=d.msgs.map(m=>{
+    if(m.t==='doc') return `<div class="msg r"><div class="msg-from">${m.from}</div><div class="doc-bubble"><div class="di">📄</div><div><div class="dn">${m.name}</div><div class="ds">${m.size}</div></div></div><div class="msg-time">${m.time}</div></div>`;
+    return `<div class="msg ${m.t}">${m.t==='r'?`<div class="msg-from">${m.from}</div>`:''}<div class="bubble">${m.text}</div><div class="msg-time">${m.time}</div></div>`;
+  }).join('');
+
+  html+=`<div class="chat-msgs">${msgsContent}</div>`;
+
+  if(isUnlocked) html+=`<div class="chat-input-wrap">
+    <div class="ci-row"><textarea class="ci-inp" placeholder="Escribe un mensaje..."></textarea><button class="ci-send">↑</button></div>
+    <div class="ci-tools">
+      <button class="ci-tool">📎 Adjuntar</button>
+      <button class="ci-tool" onclick="openModal('modal-cal')">📅 Agendar visita</button>
+      <button class="ci-tool">🤖 Consultar IA</button>
+      <button class="ci-tool">📑 Solicitar contrato</button>
+    </div>
+  </div>`;
+
+  ca.innerHTML=html;
+  const me=ca.querySelector('.chat-msgs');if(me)me.scrollTop=me.scrollHeight;
+}
+
+// ── Feed cards
+const feedData=[
+  {price:'850.000 €',loc:'Escaldes-Engordany',beds:3,baths:2,sqm:109,score:'8.4',badge:'Venta',bc:'bv',tags:[{t:'No-residente',c:'cl'},{t:'Sociedad OK',c:'cl'},{t:'Yield 5.8%',c:'inv'}],why:'Cumple todos tus criterios: no-residente, sociedad, terraza 45m² y mascotas.',bg:'#0a1508',e:'🏡',isNew:true},
+  {price:'1.200.000 €',loc:'Ordino, AND',beds:4,baths:3,sqm:180,score:'9.1',badge:'Venta',bc:'bv',tags:[{t:'No-residente',c:'cl'},{t:'Yield 7.4%',c:'inv'},{t:'Sociedad',c:'cl'}],why:'Por encima del presupuesto pero score muy alto. Revalorización +18% estimada.',bg:'#0f0a04',e:'🏔️',isNew:true},
+  {price:'620.000 €',loc:'La Massana, AND',beds:3,baths:2,sqm:95,score:'8.0',badge:'Venta',bc:'bv',tags:[{t:'No-residente',c:'cl'},{t:'Turístico OK',c:'inv'}],why:'Dentro de presupuesto. Rendimiento estimado 6.1%. Terraza 30m².',bg:'#08040f',e:'🏘️',isNew:false},
+  {price:'4.500 €/mes',loc:'Andorra la Vella',beds:2,baths:1,sqm:78,score:'7.8',badge:'Alquiler',bc:'ba',tags:[{t:'Mascotas',c:'inv'},{t:'Parking',c:'cl'}],why:'Encaja en alquiler. Solo 2 hab. (criterio: 3+). Mascotas y parking OK.',bg:'#04080f',e:'🌆',isNew:true},
+];
+const fc=document.getElementById('feed-cards');
+feedData.forEach(p=>{
+  const d=document.createElement('div');d.className='feed-card';
+  d.innerHTML=`
+    <div class="fc-img" style="background:linear-gradient(135deg,${p.bg},#040404)">
+      <div>${p.e}</div>
+      <span class="fc-score-pill">${p.score}</span>
+      ${p.isNew?'<span class="fc-new">Nuevo</span>':''}
+      <span class="fc-type ${p.bc}">${p.badge}</span>
+    </div>
+    <div class="fc-body">
+      <div class="fc-top"><div class="fc-price">${p.price}</div><div class="fc-score-box"><span class="sv">${p.score}</span><span class="sk">Score IA</span></div></div>
+      <div class="fc-loc">📍 ${p.loc}</div>
+      <div class="fc-specs"><span>🛏 ${p.beds}</span><span>🚿 ${p.baths}</span><span>📐 ${p.sqm}m²</span></div>
+      <div class="fc-tags">${p.tags.map(t=>`<span class="ftag ${t.c}">${t.t}</span>`).join('')}</div>
+      <div class="fc-why"><b>Por qué encaja:</b> ${p.why}</div>
+      <div class="fc-actions">
+        <button class="fca">💾 Guardar</button>
+        <button class="fca" onclick="event.stopPropagation();showTab('t-keys')">💬 Abrir Key</button>
+        <button class="fca main" onclick="event.stopPropagation();openModal('modal-apply')">Postular →</button>
+      </div>
+    </div>`;
+  fc.appendChild(d);
+});
+
+// ── Search grid
+const props=[
+  {price:'850.000 €',loc:'Escaldes',beds:3,baths:2,sqm:109,score:'8.4',badge:'Venta',bc:'bv',tags:[{t:'No-residente',c:'cl'},{t:'Sociedad',c:'cl'}],bg:'#080f08',e:'🏡'},
+  {price:'1.200.000 €',loc:'Ordino',beds:4,baths:3,sqm:180,score:'9.1',badge:'Venta',bc:'bv',tags:[{t:'Yield >7%',c:'inv'},{t:'No-residente',c:'cl'}],bg:'#0f0a04',e:'🏔️'},
+  {price:'4.500 €/mes',loc:'Andorra la Vella',beds:2,baths:1,sqm:78,score:'7.8',badge:'Alquiler',bc:'ba',tags:[{t:'Mascotas',c:'inv'},{t:'Parking',c:'cl'}],bg:'#04080f',e:'🌆'},
+  {price:'620.000 €',loc:'La Massana',beds:3,baths:2,sqm:95,score:'8.0',badge:'Venta',bc:'bv',tags:[{t:'No-residente',c:'cl'},{t:'Turístico',c:'inv'}],bg:'#08040f',e:'🏘️'},
+  {price:'2.800 €/mes',loc:'Canillo',beds:1,baths:1,sqm:52,score:'7.2',badge:'Alquiler',bc:'ba',tags:[{t:'Estudio',c:'cl'}],bg:'#050a05',e:'🏠'},
+  {price:'3.100.000 €',loc:'Pas de la Casa',beds:6,baths:4,sqm:320,score:'9.4',badge:'Venta',bc:'bv',tags:[{t:'Villa',c:'ag'},{t:'Yield >10%',c:'inv'}],bg:'#100804',e:'🏰'},
+];
+const g=document.getElementById('pgrid');
+props.forEach(p=>{
+  const c=document.createElement('div');c.className='pcard';
+  c.innerHTML=`<div class="pimg" style="background:linear-gradient(135deg,${p.bg},#040404)"><div>${p.e}</div><span class="pbadge ${p.bc}">${p.badge}</span><span class="pscore">${p.score}</span></div><div class="pbody"><div class="pprice">${p.price}</div><div class="ploc">📍 ${p.loc}</div><div class="pspecs"><span>🛏 ${p.beds}</span><span>🚿 ${p.baths}</span><span>📐 ${p.sqm}m²</span></div><div class="ptags">${p.tags.map(t=>`<span class="ptag ${t.c}">${t.t}</span>`).join('')}</div></div>`;
+  c.onclick=()=>showTab('t-keys');g.appendChild(c);
+});
+
+// ── Init chips & pills
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',function(){this.classList.toggle('on')}));
+document.querySelectorAll('.fpills').forEach(g=>g.querySelectorAll('.fpill').forEach(p=>p.addEventListener('click',function(){
+  g.querySelectorAll('.fpill').forEach(x=>x.classList.remove('active'));this.classList.add('active');
+})));
+document.querySelectorAll('.ff').forEach(f=>f.addEventListener('click',function(){
+  document.querySelectorAll('.ff').forEach(x=>x.classList.remove('on'));this.classList.add('on');
+}));
+
+buildCalendar();
+</script>
+</body>
+</html>
