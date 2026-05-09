@@ -368,6 +368,7 @@ sbAuth.auth.getSession().then(function(res){
     <button class="ntab" onclick="showTab('t-perfil')">Mi perfil</button>
   </div>
   <div class="nav-right">
+    <span id="user-name" style="font-size:12px;color:var(--sub);font-weight:500"></span>
     <span class="badge-inv">Inversor</span>
     <button class="btn-inv" onclick="openModal('modal-publish')">+ Publicar bien</button>
     <div class="avatar" id="user-avatar">?</div>
@@ -836,6 +837,8 @@ sbAuth.auth.getSession().then(function(res){
     var name = res.data.session.user.user_metadata.full_name || res.data.session.user.email;
     var initials = name.split(' ').map(function(n){return n[0]}).join('').substring(0,2).toUpperCase();
     var av = document.getElementById('user-avatar');
+    var un = document.getElementById('user-name');
+if(un) un.textContent = name.split(' ')[0];
     if(av) av.textContent = initials;
   }
 });
