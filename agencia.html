@@ -1081,6 +1081,31 @@ document.getElementById('btn-logout').addEventListener('click', function(){
     window.location.href='login.html';
   });
 });
+  async function publishProperty(){
+  var title=document.getElementById('pub-title').value.trim();
+  var price=document.getElementById('pub-price').value;
+  var type=document.getElementById('pub-type').value;
+  var op=document.getElementById('pub-op').value;
+  var sqm=document.getElementById('pub-sqm').value;
+  var location=document.getElementById('pub-location').value.trim();
+  var country=document.getElementById('pub-country').value.trim();
+  var desc=document.getElementById('pub-desc').value.trim();
+  var err=document.getElementById('pub-error');
+  var suc=document.getElementById('pub-success');
+  err.className='msg error';suc.className='msg success';
+  if(!title||!price||!location){err.textContent='Rellena título, precio y ubicación.';err.className='msg error show';return;}
+  var session=await sbAuth.auth.getSession();
+  if(!session.data.session){window.location.href='login.html';return;}
+  var userId=session.data.session.user.id;
+  var sb2=supabase.createClient('https://zftxrycmzvsebuqwhyis.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmdHhyeWNtenZzZWJ1cXdoeWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNDUzNDEsImV4cCI6MjA5MzgyMTM0MX0.OSh4bP5Ypi0Wsv-d5c2fi-bphnhhmLJoU-yN5cc1AGA');
+  var {error}=await sb2.from('properties').insert({
+    title:title,price:parseFloat(price),type:type,operation:op,
+    surface:sqm?parseFloat(sqm):null,location:location,country:country,
+    description:desc,owner_id:userId,status:'activa',visibility:'todos'
+  });
+  if(error){err.textContent='Error al publicar: '+error.message;err.className='msg error show';}
+  else{suc.textContent='Propiedad publicada correctamente.';suc.className='msg success show';setTimeout(function(){closeModal('modal-publish')},1500);}
+}
 </script>
   <div class="modal-overlay" id="modal-publish">
   <div class="modal">
