@@ -1065,6 +1065,8 @@ sbAuth.auth.getSession().then(function(res){
     var initials = name.split(' ').map(function(n){return n[0]}).join('').substring(0,2).toUpperCase();
     var av = document.getElementById('user-avatar');
     if(av) av.textContent = initials;
+    var un = document.getElementById('user-name');
+if(un) un.textContent = name.split(' ')[0];
   }
 });
 document.getElementById('btn-logout').addEventListener('click', function(){
