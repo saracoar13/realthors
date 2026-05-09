@@ -40,7 +40,9 @@ async function publishProperty(){
   var {error}=await sbAuth.from('properties').insert({
     title:title,price:parseFloat(price),type:type,operation:op,
     surface:sqm?parseFloat(sqm):null,location:location,country:country,
-    description:desc,owner_id:userId,status:'activa',visibility:'todos'
+    description:desc,owner_id:userId,status:'activa',visibility:'todos',
+bedrooms:document.getElementById('pub-beds').value?parseInt(document.getElementById('pub-beds').value):null,
+bathrooms:document.getElementById('pub-baths').value?parseInt(document.getElementById('pub-baths').value):null
   });
   if(error){err.textContent='Error: '+error.message;err.className='msg error show';}
   else{suc.textContent='Propiedad publicada.';suc.className='msg success show';setTimeout(function(){closeModal('modal-publish');},1500);}
@@ -576,6 +578,27 @@ nav{height:52px;padding:0 24px;display:flex;align-items:center;justify-content:s
     </div>
     <div class="frow"><label>Ubicación</label><input class="finp" id="pub-location" placeholder="Escaldes-Engordany, Andorra"></div>
     <div class="frow"><label>País</label><input class="finp" id="pub-country" placeholder="Andorra"></div>
+<div class="frow"><label>Características</label>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);cursor:pointer"><input type="checkbox" id="pub-terrace"> Terraza</label>
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);cursor:pointer"><input type="checkbox" id="pub-parking"> Parking</label>
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);cursor:pointer"><input type="checkbox" id="pub-pool"> Piscina</label>
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);cursor:pointer"><input type="checkbox" id="pub-elevator"> Ascensor</label>
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);cursor:pointer"><input type="checkbox" id="pub-storage"> Trastero</label>
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);cursor:pointer"><input type="checkbox" id="pub-furnished"> Amueblado</label>
+</div></div>
+<div class="frow"><label>Condiciones legales</label>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);cursor:pointer"><input type="checkbox" id="pub-nonresident"> No-residente OK</label>
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);cursor:pointer"><input type="checkbox" id="pub-society"> Admite sociedad</label>
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);cursor:pointer"><input type="checkbox" id="pub-tourist"> Uso turístico</label>
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);cursor:pointer"><input type="checkbox" id="pub-pets"> Acepta animales</label>
+</div></div>
+<div class="frow2">
+  <div><label>Año construcción</label><input class="finp" id="pub-year" placeholder="2005" type="number"></div>
+  <div><label>Certificado energético</label><select class="finp" id="pub-energy"><option value="">—</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option></select></div>
+</div>
+<div id="pub-yield-row" class="frow"><label>Rendimiento estimado (%)</label><input class="finp" id="pub-yield" placeholder="5.5" type="number" step="0.1"></div>
     <div class="frow"><label>Descripción</label><textarea class="finp" id="pub-desc" placeholder="Describe la propiedad..." style="height:80px;resize:none"></textarea></div>
     <div class="msg error" id="pub-error"></div>
     <div class="msg success" id="pub-success"></div>
