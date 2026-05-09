@@ -407,6 +407,11 @@ nav{height:54px;padding:0 32px;display:flex;align-items:center;justify-content:s
 .key-row .km{font-weight:700;color:var(--ag)}
 .key-row .kl{font-size:10px;color:var(--sub)}
 </style>
+const sbAuth = supabase.createClient('https://zftxrycmzvsebuqwhyis.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmdHhyeWNtenZzZWJ1cXdoeWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNDUzNDEsImV4cCI6MjA5MzgyMTM0MX0.OSh4bP5Ypi0Wsv-d5c2fi-bphnhhmLJoU-yN5cc1AGA');
+sbAuth.auth.getSession().then(function(res){
+  if(!res.data.session) window.location.href='login.html';
+});
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
