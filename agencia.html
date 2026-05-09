@@ -656,19 +656,38 @@ function openKeyChat(k){
   var msgs=ca.querySelector('.chat-msgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;
 }
 
-window.onload=function(){
+window.onload=async function(){
   var pl=document.getElementById('prop-list');
-  if(pl)propsData.forEach(function(p,i){
-    var el=document.createElement('div');el.className='prop-item'+(i===0?' active':'');
-    el.innerHTML='<div class="prop-thumb" style="background:linear-gradient(135deg,'+p.bg+',#040404)">'+p.emoji+'</div><div class="prop-info"><div class="prop-name">'+p.name+'</div><div class="prop-sub">'+p.ref+' · '+p.op+'</div><div class="prop-tags">'+p.tags.map(function(t){return'<span class="tag dim">'+t+'</span>'}).join('')+'</div></div><div class="prop-right"><div class="prop-price">'+p.price+'</div><div class="prop-score">Score '+p.score+'</div><div class="prop-views">'+p.views+' vistas</div></div>';
-    el.onclick=function(){document.querySelectorAll('.prop-item').forEach(function(x){x.classList.remove('active')});el.classList.add('active');showPropDetail(p)};
-    pl.appendChild(el);
-    if(i===0)showPropDetail(p);
-  });
+  if(pl){
+    pl.innerHTML='<div style="padding:20px;text-align:center;color:var(--dim);font-size:12px">Cargando propiedades...</div>';
+    var session=await sbAuth.auth.getSession();
+    if(session.data.session){
+      var userId=session.data.session.user.id;
+      var {data,error}=await sbAuth.from('properties').select('*').eq('owner_id',userId).order('created_at',{ascending:false});
+      if(data&&data.length>0){
+        pl.innerHTML='';
+        data.forEach(function(p,i){
+          var el=document.createElement('div');el.className='prop-item'+(i===0?' active':'');
+          var emoji=p.type==='Villa'?'🏰':p.type==='Casa'?'🏡':p.type==='Oficina'?'🏢':p.type==='Local'?'🏪':p.type==='Solar'?'🌳':'🏠';
+          el.innerHTML='<div class="prop-thumb" style="background:linear-gradient(135deg,#06080f,#040404)">'+emoji+'</div><div class="prop-info"><div class="prop-name">'+p.title+'</div><div class="prop-sub">'+p.operation+' · '+p.location+'</div><div class="prop-tags"><span class="tag dim">'+p.type+'</span><span class="tag dim">'+p.status+'</span></div></div><div class="prop-right"><div class="prop-price">'+Number(p.price).toLocaleString('es')+'€</div><div class="prop-score">'+p.surface+'m²</div><div class="prop-views">Reciente</div></div>';
+          el.onclick=function(){document.querySelectorAll('.prop-item').forEach(function(x){x.classList.remove('active')});el.classList.add('active');showRealPropDetail(p,emoji)};
+          pl.appendChild(el);
+          if(i===0)showRealPropDetail(p,emoji);
+        });
+      } else {
+        pl.innerHTML='<div style="padding:40px;text-align:center;color:var(--dim);font-size:12px"><div style="font-size:32px;margin-bottom:10px;opacity:.3">🏠</div><p>No tienes propiedades publicadas aún.</p><p style="margin-top:8px">Haz clic en <b style="color:var(--ag)">+ Publicar bien</b> para añadir la primera.</p></div>';
+        document.getElementById('prop-detail').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--dim);gap:8px"><div style="font-size:32px;opacity:.3">🏠</div><p style="font-size:12px">Sin propiedades aún</p></div>';
+      }
+    }
+  }
   renderKeys();
 };
 
-function showPropDetail(p){
+function showRealPropDetail(p,emoji){
+  var d=document.getElementById('prop-detail');if(!d)return;
+  d.innerHTML='<div class="det-head">Ficha de propiedad</div><div class="det-img" style="background:linear-gradient(135deg,#06080f,#040404)">'+emoji+'</div><div class="det-title">'+p.title+'</div><div class="det-ref">'+p.type+' · '+p.operation+'</div><div class="det-sect">Detalles</div><div class="det-row"><span>Precio</span><span>'+Number(p.price).toLocaleString('es')+'€</span></div><div class="det-row"><span>Ubicación</span><span>'+p.location+'</span></div><div class="det-row"><span>País</span><span>'+(p.country||'—')+'</span></div><div class="det-row"><span>Superficie</span><span>'+(p.surface||'—')+'m²</span></div><div class="det-row"><span>Estado</span><span>'+p.status+'</span></div><div class="det-row"><span>Visibilidad</span><span>'+p.visibility+'</span></div>'+(p.description?'<div class="det-sect">Descripción</div><div style="font-size:11px;color:var(--sub);line-height:1.7;padding:6px 0">'+p.description+'</div>':'')+'<div class="det-sect">Acciones rápidas</div><div class="det-actions"><button class="da-btn primary">Editar ficha</button><button class="da-btn">Ver Keys</button><button class="da-btn">Generar contrato IA</button></div>';
+}
+  function showPropDetail(p){
   var d=document.getElementById('prop-detail');if(!d)return;
   d.innerHTML='<div class="det-head">Ficha de propiedad</div><div class="det-img" style="background:linear-gradient(135deg,'+p.bg+',#040404)">'+p.emoji+'</div><div class="det-title">'+p.name+'</div><div class="det-ref">'+p.ref+' · '+p.op+'</div><div class="det-sect">Detalles</div><div class="det-row"><span>Precio</span><span>'+p.price+'</span></div><div class="det-row"><span>Estado</span><span>'+p.st+'</span></div><div class="det-row"><span>Vistas este mes</span><span>'+p.views+'</span></div><div class="det-row"><span>Keys abiertas</span><span>4</span></div><div class="det-row"><span>Visitas realizadas</span><span>3</span></div><div class="det-sect">Investment Score IA</div><div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-bottom:3px"><span>Rendimiento</span><span>'+p.score+'/10</span></div><div class="prog-track"><div class="prog-fill" style="width:'+(parseFloat(p.score)*10)+'%"></div></div></div><div class="det-sect">Acciones rápidas</div><div class="det-actions"><button class="da-btn primary">Editar ficha</button><button class="da-btn">Ver Keys</button><button class="da-btn">Generar contrato IA</button><button class="da-btn">Ver analytics</button></div>';
 }
