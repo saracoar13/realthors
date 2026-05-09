@@ -733,15 +733,18 @@ nav{height:54px;padding:0 32px;display:flex;align-items:center;justify-content:s
 function showTab(id){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});
   document.querySelectorAll('.ntab').forEach(function(t){t.classList.remove('active')});
-  document.getElementById(id).classList.add('active');
+  var el=document.getElementById(id);
+  if(el) el.classList.add('active');
   var map={t_resumen:0,t_inicio:1,t_buscar:2,t_misbienes:3,t_keys:4,t_perfil:5};
   var key=id.replace(/-/g,'_');
   if(map[key]!==undefined) document.querySelectorAll('.ntab')[map[key]].classList.add('active');
 }
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
+function openModal(id){var el=document.getElementById(id);if(el)el.classList.add('open')}
+function closeModal(id){var el=document.getElementById(id);if(el)el.classList.remove('open')}
 function selVis(el,groupId){
-  document.getElementById(groupId).querySelectorAll('.vis-opt').forEach(function(o){o.classList.remove('sel');o.querySelector('.vo-ck').textContent='';});
+  var g=document.getElementById(groupId);
+  if(!g) return;
+  g.querySelectorAll('.vis-opt').forEach(function(o){o.classList.remove('sel');o.querySelector('.vo-ck').textContent='';});
   el.classList.add('sel');el.querySelector('.vo-ck').textContent='v';
 }
 document.querySelectorAll('.chip').forEach(function(c){c.addEventListener('click',function(){this.classList.toggle('on')})});
@@ -749,6 +752,7 @@ document.querySelectorAll('.fpills').forEach(function(g){g.querySelectorAll('.fp
 document.querySelectorAll('.ff').forEach(function(f){f.addEventListener('click',function(){document.querySelectorAll('.ff').forEach(function(x){x.classList.remove('on')});this.classList.add('on')})});
 
 // Feed cards
+window.onload=function(){
 var feedData=[
   {price:'2.200.000 euros',loc:'Ordino, AND',sqm:280,beds:6,yld:'8.1%',score:'9.2',reval:'+20%',vis:'Solo inversores',why:'Yield 8.1% muy por encima de tu minimo del 6% - Score 9.2 - Revalorizacion +20%',bg:'#0c0f06',e:'&#127969;',isNew:true},
   {price:'3.100.000 euros',loc:'Pas de la Casa, AND',sqm:320,beds:7,yld:'7.4%',score:'9.4',reval:'+18%',vis:'Solo inversores',why:'Score mas alto de tu feed - Oportunidad exclusiva - Solo inversores verificados',bg:'#100804',e:'&#127956;',isNew:true},
@@ -761,7 +765,6 @@ if(fc) feedData.forEach(function(p){
   d.innerHTML='<div class="fc-img" style="background:linear-gradient(135deg,'+p.bg+',#040404)"><div>'+p.e+'</div><span class="fc-score-pill">Score '+p.score+'</span><span class="fc-om-badge">Off-Market</span>'+(p.isNew?'<span class="fc-new">Nuevo</span>':'')+'</div><div class="fc-body"><div class="fc-price">'+p.price+'</div><div class="fc-loc">'+p.loc+' - '+p.sqm+'m2 - '+p.beds+' hab.</div><div class="fc-metrics"><div class="fc-met green"><div class="mv">'+p.yld+'</div><div class="mk">Yield</div></div><div class="fc-met amber"><div class="mv">'+p.reval+'</div><div class="mk">Revalorizacion</div></div><div class="fc-met blue"><div class="mv">'+p.score+'</div><div class="mk">Score IA</div></div></div><div class="fc-tags"><span class="ftag ag">Off-Market</span><span class="ftag ag">'+p.vis+'</span></div><div class="fc-why"><b>Por que encaja:</b> '+p.why+'</div><div class="fc-vis">Visible para: <span>'+p.vis+'</span></div><div class="fc-actions"><button class="fca">Guardar</button><button class="fca">Analisis IA</button><button class="fca main">Solicitar Key</button></div></div>';
   fc.appendChild(d);
 });
-}
 
 // Search grid
 var gridData=[
@@ -932,6 +935,7 @@ function openKiChat(k){
 
 // Init Keys tab
 if(document.getElementById('ki-list')) renderKiList();
+}; // end window.onload
 </script>
 </body>
 </html>
