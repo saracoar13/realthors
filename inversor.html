@@ -35,9 +35,794 @@ nav{height:54px;padding:0 32px;display:flex;align-items:center;justify-content:s
 .btn-ghost:hover{color:var(--text)}
 .screen{display:none;position:fixed;top:54px;left:0;right:0;bottom:0;overflow:hidden}
 .screen.active{display:block}
+  .scrollable{overflow-y:auto;height:calc(100vh - 54px);padding:22px 26px}
+.page-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.page-hd h2{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400}
+.page-hd p{font-size:11px;color:var(--sub);margin-top:3px}
+.page-hd-r{display:flex;gap:7px;align-items:center}
+.krow{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px}
+.kcard{background:var(--s1);border-radius:10px;padding:15px;border:1px solid var(--border)}
+.klbl{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.kval{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;line-height:1;margin-bottom:3px}
+.kdelta{font-size:11px}.kdelta.up{color:var(--inv)}.kdelta.dn{color:var(--red)}
+.card{background:var(--s1);border-radius:11px;padding:16px;border:1px solid var(--border);margin-bottom:13px}
+.card h4{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.card h4 span{font-size:11px;color:var(--sub);font-family:'Inter',sans-serif;font-weight:400}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px}
+.row-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border)}
+.row-item:last-child{border-bottom:none}
+.ri-info{flex:1;min-width:0}
+.ri-info strong{display:block;font-size:12px;font-weight:500}
+.ri-info span{color:var(--sub);font-size:11px}
+.ri-right{font-size:11px;font-weight:600;text-align:right;white-space:nowrap}
+.ri-right.green{color:var(--inv)}.ri-right.amber{color:var(--ag)}
+.tag{font-size:9px;padding:2px 7px;border-radius:7px;font-weight:600}
+.tag.inv{background:var(--inv-bg);color:var(--inv)}.tag.ag{background:var(--ag-bg);color:var(--ag)}.tag.cl{background:var(--cl-bg);color:var(--cl)}.tag.red{background:var(--red-bg);color:var(--red)}
+.sep{display:block;font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{padding:4px 10px;border-radius:10px;font-size:11px;font-weight:500;border:1px solid var(--border2);cursor:pointer;transition:all .18s;background:transparent;color:var(--sub);user-select:none}
+.chip:hover{color:var(--text)}
+.chip.on{background:var(--inv-bg);color:var(--inv);border-color:var(--inv-bd)}
+.frow{margin-bottom:11px}
+.frow label{display:block;font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.finp{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color .18s}
+.finp:focus{border-color:var(--inv)}
+.frow2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px}
+.fpills{display:flex;gap:4px;flex-wrap:wrap}
+.fpill{padding:5px 10px;border-radius:6px;border:1px solid var(--border2);font-size:11px;font-weight:500;cursor:pointer;transition:all .18s;color:var(--sub);background:transparent}
+.fpill.active{background:var(--inv-bg);color:var(--inv);border-color:var(--inv-bd)}
+#t-resumen{background:var(--bg)}
+.res-layout{display:grid;grid-template-columns:240px 1fr;height:calc(100vh - 54px)}
+.res-left{background:var(--s1);border-right:1px solid var(--border);padding:20px;overflow-y:auto;height:100%}
+.rl-av{width:48px;height:48px;border-radius:50%;background:var(--inv-bg);border:2px solid var(--inv-bd);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:11px}
+.rl-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;margin-bottom:2px}
+.rl-sub{font-size:11px;color:var(--sub);margin-bottom:14px}
+.rl-sep{font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:12px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.rl-stat{display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)}
+.rl-stat:last-of-type{border-bottom:none}
+.rl-stat span:first-child{color:var(--sub)}
+.rl-stat span:last-child{font-weight:600}
+.rl-stat .green{color:var(--inv)}
+.qa{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.qa-btn{padding:8px 12px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;border:1px solid var(--border2);background:transparent;color:var(--sub);text-align:left}
+.qa-btn:hover{color:var(--text)}
+.qa-btn.main{background:var(--inv);color:#0e0e10;border-color:var(--inv);font-weight:600}
+.qa-btn.main:hover{filter:brightness(1.08)}
+.score-w{background:linear-gradient(135deg,var(--s2),var(--s3));border:1px solid var(--inv-bd);border-radius:12px;padding:16px;margin-bottom:14px}
+.sw-head{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--inv);margin-bottom:12px}
+.sw-ring{display:flex;align-items:center;gap:14px}
+.sw-num{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;color:var(--inv);line-height:1}
+.sw-bars{flex:1;display:flex;flex-direction:column;gap:7px}
+.swb .swb-lbl{font-size:10px;color:var(--sub);display:flex;justify-content:space-between;margin-bottom:3px}
+.swb-track{height:3px;background:var(--s3);border-radius:2px;overflow:hidden}
+.swb-fill{height:100%;background:var(--inv);border-radius:2px}
+.key-mini{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;background:var(--s2);border:1px solid var(--border);margin-bottom:5px;cursor:pointer;transition:border-color .18s;font-size:11px}
+.key-mini:hover{border-color:var(--border2)}
+.km-icon{font-size:14px}.km-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.km-st{font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px}
+.km-st.u{background:var(--inv-bg);color:var(--inv)}.km-st.w{background:var(--ag-bg);color:var(--ag)}.km-st.l{background:var(--red-bg);color:var(--red)}
+#t-inicio{background:var(--bg)}
+.inicio-layout{display:grid;grid-template-columns:1fr 260px;height:calc(100vh - 54px)}
+.inicio-main{padding:22px 24px;overflow-y:auto;height:100%}
+.inicio-right{background:var(--s1);border-left:1px solid var(--border);padding:18px;overflow-y:auto;height:100%}
+.om-banner{display:flex;align-items:center;gap:10px;background:var(--ag-bg);border:1px solid var(--ag-bd);border-radius:10px;padding:11px 14px;margin-bottom:16px;font-size:12px;color:var(--ag)}
+.feed-search{background:var(--s1);border:1px solid var(--border2);border-radius:12px;padding:16px;margin-bottom:18px}
+.fs-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:12px}
+.sf label{display:block;font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.sf input,.sf select{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color .18s}
+.sf input:focus,.sf select:focus{border-color:var(--inv)}
+.sf select option{background:#1e1e21}
+.sbtn{height:37px;padding:0 18px;border:none;border-radius:7px;background:var(--inv);color:#0e0e10;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap}
+.sbtn:hover{filter:brightness(1.08)}
+.ai-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ai-row span{font-size:10px;color:var(--dim)}
+.achip{display:inline-flex;align-items:center;background:var(--s2);border:1px solid var(--border2);border-radius:12px;padding:3px 10px;font-size:10px;font-weight:500;color:var(--sub);cursor:pointer;transition:all .18s}
+.achip:hover{border-color:var(--inv);color:var(--inv)}
+.feed-filters{display:flex;gap:5px;margin-bottom:16px;flex-wrap:wrap}
+.ff{padding:4px 11px;border-radius:12px;font-size:11px;font-weight:500;border:1px solid var(--border2);cursor:pointer;color:var(--sub);background:transparent;transition:all .18s}
+.ff.on{background:var(--inv-bg);color:var(--inv);border-color:var(--inv-bd)}
+.ff:hover:not(.on){color:var(--text)}
+.feed-card{background:var(--s1);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:14px;cursor:pointer;transition:border-color .2s}
+.feed-card:hover{border-color:var(--inv-bd)}
+.fc-img{height:160px;display:flex;align-items:center;justify-content:center;font-size:54px;position:relative}
+.fc-score-pill{position:absolute;top:10px;right:10px;background:rgba(14,14,16,.88);border:1px solid var(--inv-bd);border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700;color:var(--inv)}
+.fc-om-badge{position:absolute;top:10px;left:10px;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--ag-bg);color:var(--ag);border:1px solid var(--ag-bd)}
+.fc-new{position:absolute;bottom:10px;left:10px;background:var(--inv-bg);border:1px solid var(--inv-bd);border-radius:5px;padding:2px 7px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--inv)}
+.fc-body{padding:14px}
+.fc-price{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:500;margin-bottom:6px}
+.fc-metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.fc-met{background:var(--s2);border-radius:7px;padding:8px;text-align:center}
+.fc-met .mv{font-size:13px;font-weight:700;margin-bottom:1px}
+.fc-met .mk{font-size:9px;color:var(--sub);text-transform:uppercase;letter-spacing:.07em}
+.fc-met.green .mv{color:var(--inv)}.fc-met.amber .mv{color:var(--ag)}.fc-met.blue .mv{color:var(--cl)}
+.fc-loc{font-size:11px;color:var(--sub);margin-bottom:8px}
+.fc-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.ftag{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
+.ftag.ag{background:var(--ag-bg);color:var(--ag)}.ftag.inv{background:var(--inv-bg);color:var(--inv)}
+.fc-why{background:var(--s2);border-radius:7px;padding:9px 11px;font-size:11px;color:var(--sub);line-height:1.6;margin-bottom:10px}
+.fc-why b{color:var(--inv);font-weight:500}
+.fc-vis{font-size:10px;color:var(--dim);margin-bottom:8px}
+.fc-vis span{color:var(--ag);font-weight:600}
+.fc-actions{display:flex;gap:7px;padding-top:10px;border-top:1px solid var(--border)}
+.fca{flex:1;padding:7px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;border:1px solid var(--border2);background:transparent;color:var(--sub)}
+.fca:hover{border-color:var(--inv);color:var(--inv)}
+.fca.main{background:var(--inv);color:#0e0e10;border-color:var(--inv);font-weight:600}
+.fca.main:hover{filter:brightness(1.08)}
+.hr-title{font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.notif{display:flex;gap:9px;padding:9px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.notif:last-child{border-bottom:none}
+.ni-ic{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.ni-ic.inv{background:var(--inv-bg)}.ni-ic.ag{background:var(--ag-bg)}.ni-ic.red{background:var(--red-bg)}
+.ni-b p{font-size:11px;line-height:1.45;margin-bottom:2px}
+.ni-b span{font-size:10px;color:var(--dim)}
+.saved-sec{margin-top:18px}
+.saved-card{background:var(--s2);border-radius:8px;padding:11px;margin-bottom:7px;cursor:pointer;border:1px solid var(--border);transition:border-color .18s}
+.saved-card:hover{border-color:var(--border2)}
+.sc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.sc-price{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:500}
+.sc-score{font-size:11px;font-weight:600;color:var(--inv)}
+.sc-loc{font-size:10px;color:var(--sub)}
+  #t-buscar{background:var(--bg)}
+.buscar-layout{display:grid;grid-template-columns:280px 1fr;height:calc(100vh - 54px)}
+.filters-col{background:var(--s1);border-right:1px solid var(--border);padding:20px;overflow-y:auto;height:100%}
+.fc-head{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;margin-bottom:6px}
+.fc-sub{font-size:11px;color:var(--sub);margin-bottom:14px}
+.om-badge-bar{display:inline-flex;align-items:center;gap:5px;background:var(--ag-bg);border:1px solid var(--ag-bd);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;color:var(--ag);margin-bottom:14px}
+.ai-block{background:linear-gradient(135deg,var(--s2),var(--s3));border:1px solid var(--inv-bd);border-radius:10px;padding:13px;margin-bottom:16px}
+.ai-block label{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--inv);display:block;margin-bottom:6px}
+.ai-ta{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;resize:none;height:52px;line-height:1.5}
+.ai-ta::placeholder{color:var(--dim)}
+.ai-go{margin-top:6px;width:100%;background:var(--inv);color:#0e0e10;border:none;border-radius:6px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+.fgroup{margin-bottom:16px}
+.fgroup label{display:block;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+.rrow{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.rinp{padding:7px 10px;border:1px solid var(--border2);border-radius:6px;font-size:11px;font-family:'Inter',sans-serif;background:var(--s2);color:var(--text);width:100%;outline:none}
+.rinp:focus{border-color:var(--inv)}
+.results-col{padding:20px;overflow-y:auto;height:100%}
+.rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.rh h2{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400}
+.rh p{font-size:11px;color:var(--sub);margin-top:2px}
+.rsort{background:var(--s1);border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--text);font-family:'Inter',sans-serif;outline:none;cursor:pointer}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+#t-misbienes{background:var(--bg)}
+.mb-layout{display:grid;grid-template-columns:1fr 360px;height:calc(100vh - 54px)}
+.mb-main{padding:22px 26px;overflow-y:auto;height:100%}
+.mb-side{background:var(--s1);border-left:1px solid var(--border);padding:22px;overflow-y:auto;height:100%}
+.publish-cta{background:linear-gradient(135deg,var(--s2),var(--s3));border:1px solid var(--inv-bd);border-radius:14px;padding:20px;margin-bottom:18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s}
+.publish-cta:hover{border-color:var(--inv);transform:translateY(-1px)}
+.pc-icon{width:44px;height:44px;border-radius:12px;background:var(--inv-bg);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.pc-text h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;margin-bottom:3px}
+.pc-text p{font-size:11px;color:var(--sub);line-height:1.55}
+.pc-arrow{margin-left:auto;font-size:18px;color:var(--inv);flex-shrink:0}
+.mb-item{background:var(--s1);border:1px solid var(--border);border-radius:11px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .18s;display:flex;align-items:center;gap:14px}
+.mb-item:hover,.mb-item.active{border-color:var(--inv-bd)}
+.mbi-img{width:60px;height:52px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.mbi-info{flex:1;min-width:0}
+.mbi-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.mbi-sub{font-size:11px;color:var(--sub);margin-bottom:5px}
+.mbi-tags{display:flex;gap:4px;flex-wrap:wrap}
+.mbi-right{text-align:right;flex-shrink:0}
+.mbi-price{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:500;margin-bottom:3px}
+.mbi-st{font-size:10px;font-weight:600}
+.mbi-st.on{color:var(--inv)}.mbi-st.pen{color:var(--ag)}.mbi-st.done{color:var(--sub)}
+.det-head{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
+.det-img{width:100%;height:130px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:52px;margin-bottom:12px}
+.det-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;margin-bottom:3px}
+.det-ref{font-size:11px;color:var(--sub);margin-bottom:12px}
+.det-sect{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:12px 0 7px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.det-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--sub)}
+.det-row:last-child{border-bottom:none}
+.det-row span:last-child{color:var(--text);font-weight:500}
+.vis-opts{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.vis-opt{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:8px;border:1px solid var(--border2);cursor:pointer;transition:all .18s}
+.vis-opt:hover{background:var(--s3)}
+.vis-opt.sel{border-color:var(--inv-bd);background:var(--inv-bg)}
+.vo-ico{font-size:15px;flex-shrink:0}.vo-t{flex:1}
+.vo-title{font-size:12px;font-weight:600;margin-bottom:1px}.vo-sub{font-size:10px;color:var(--sub)}
+.vo-ck{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px}
+.vis-opt.sel .vo-ck{background:var(--inv);border-color:var(--inv);color:#0e0e10}
+.key-rcv{display:flex;align-items:center;gap:9px;padding:9px;background:var(--s2);border-radius:8px;margin-bottom:6px;cursor:pointer;border:1px solid var(--border);transition:border-color .18s}
+.key-rcv:hover{border-color:var(--border2)}
+.kr-av{width:30px;height:30px;border-radius:50%;background:var(--cl-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--cl);flex-shrink:0}
+.kr-info{flex:1}.kr-info strong{display:block;font-size:12px;font-weight:500;margin-bottom:1px}.kr-info span{font-size:10px;color:var(--sub)}
+.kr-st{font-size:9px;font-weight:700;padding:2px 6px;border-radius:7px}
+.kr-st.u{background:var(--inv-bg);color:var(--inv)}.kr-st.w{background:var(--ag-bg);color:var(--ag)}.kr-st.l{background:var(--red-bg);color:var(--red)}
+.det-actions{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+#t-perfil{background:var(--bg)}
+.perf-layout{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 54px)}
+.perf-left{padding:24px 28px;overflow-y:auto;height:100%}
+.perf-right{background:var(--s1);border-left:1px solid var(--border);padding:24px 28px;overflow-y:auto;height:100%}
+.ph-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.ph-av{width:50px;height:50px;border-radius:50%;background:var(--inv-bg);border:2px solid var(--inv-bd);display:flex;align-items:center;justify-content:center;font-size:20px}
+.ph-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;margin-bottom:2px}
+.ph-sub{font-size:11px;color:var(--sub)}
+.prog-wrap .pl{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-bottom:4px}
+.prog-wrap .pl b{color:var(--inv)}
+.prog-track{height:3px;background:var(--s3);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--inv);border-radius:2px}
+.doc-ok{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--border2);border-radius:7px;padding:9px 11px;margin-bottom:6px;font-size:11px}
+.doc-ok .di{font-size:15px}.doc-ok .dn{flex:1;font-weight:500}.doc-ok .ds{font-size:10px;color:var(--inv);font-weight:600}
+.doc-box{background:var(--s2);border:1px dashed var(--border2);border-radius:8px;padding:16px;text-align:center;font-size:11px;color:var(--sub);cursor:pointer;transition:border-color .18s;margin-bottom:10px}
+.doc-box:hover{border-color:var(--inv);color:var(--inv)}
+.save-btn{width:100%;background:var(--inv);color:#0e0e10;border:none;border-radius:7px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:filter .18s}
+.save-btn:hover{filter:brightness(1.08)}
+.pref-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:11px}
+.pref-card h4{font-size:12px;font-weight:600;margin-bottom:9px}
+.pref-row{display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--sub)}
+.pref-row:last-child{border-bottom:none}
+.pref-row span:last-child{color:var(--text);font-weight:500}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--s1);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;padding:26px;position:relative}
+.modal-close{position:absolute;top:14px;right:14px;background:var(--s2);border:1px solid var(--border2);border-radius:6px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:var(--sub)}
+.modal-close:hover{color:var(--text)}
+.modal h2{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400;margin-bottom:4px}
+.modal-p{font-size:12px;color:var(--sub);margin-bottom:18px}
+.modal-sect{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.modal-sect:last-child{border-bottom:none;margin-bottom:0}
+.modal-sect h4{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.modal-inp{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;margin-bottom:7px}
+.modal-inp:focus{border-color:var(--inv)}
+.modal-sel{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;margin-bottom:7px}
+.modal-sel option{background:#1e1e21}
+.modal-g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:7px}
+.modal-confirm{width:100%;background:var(--inv);color:#0e0e10;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-top:6px;transition:filter .18s}
+.modal-confirm:hover{filter:brightness(1.08)}
+#t-keys{background:var(--bg)}
+.keys-inv-layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 54px)}
+.ki-col{background:var(--s1);border-right:1px solid var(--border);height:100%;display:flex;flex-direction:column}
+.ki-col-top{padding:14px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.ki-col-top h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;margin-bottom:9px}
+.ki-col-search{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;display:block;margin-bottom:8px}
+.ki-col-search::placeholder{color:var(--dim)}
+.bien-tabs{display:flex;gap:0;background:var(--s2);border-radius:7px;padding:3px}
+.btab{flex:1;padding:5px 4px;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;text-align:center;font-family:'Inter',sans-serif;transition:all .18s;color:var(--sub);border:none;background:transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btab.active{background:var(--s1);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.ki-stabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.kistab{flex:1;padding:8px 4px;font-size:11px;font-weight:500;text-align:center;cursor:pointer;color:var(--sub);border:none;background:transparent;font-family:'Inter',sans-serif;border-bottom:2px solid transparent;transition:all .18s}
+.kistab:hover{color:var(--text)}.kistab.active{color:var(--inv);border-bottom-color:var(--inv)}
+.kistab-c{display:inline-block;border-radius:8px;padding:1px 5px;font-size:9px;font-weight:700;margin-left:2px}
+.kistab-c.inv{background:var(--inv-bg);color:var(--inv)}.kistab-c.ag{background:var(--ag-bg);color:var(--ag)}.kistab-c.red{background:var(--red-bg);color:var(--red)}
+.ki-list{flex:1;overflow-y:auto}
+.ki-item{display:flex;gap:9px;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .18s;align-items:flex-start;position:relative}
+.ki-item:hover{background:var(--s2)}.ki-item.active{background:var(--s2);border-left:2px solid var(--inv)}
+.ki-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;background:var(--cl-bg);color:var(--cl)}
+.ki-inf{flex:1;min-width:0}
+.ki-inf .kn{font-size:12px;font-weight:600;margin-bottom:2px;display:flex;align-items:center;justify-content:space-between}
+.ki-inf .kn span{font-size:10px;color:var(--dim);font-weight:400}
+.ki-inf .kprop{font-size:11px;color:var(--text);font-weight:500;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ki-inf .kprev{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+.ki-lock{font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px}
+.ki-lock.u{background:var(--inv-bg);color:var(--inv)}.ki-lock.w{background:var(--ag-bg);color:var(--ag)}.ki-lock.l{background:var(--red-bg);color:var(--red)}
+.ki-unread{width:6px;height:6px;border-radius:50%;background:var(--inv);position:absolute;top:13px;right:12px}
+.ki-chat{display:flex;flex-direction:column;height:calc(100vh - 54px);background:var(--bg)}
+.ki-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim);gap:10px}
+.ki-empty .ke-ico{font-size:36px;opacity:.3}.ki-empty p{font-size:12px}
+.ki-lock-bar{padding:8px 18px;font-size:11px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.ki-lock-bar.u{background:var(--inv-bg);border-bottom-color:var(--inv-bd);color:var(--inv)}
+.ki-lock-bar.w{background:var(--ag-bg);border-bottom-color:var(--ag-bd);color:var(--ag)}
+.ki-lock-bar.l{background:var(--red-bg);border-bottom-color:var(--red-bd);color:var(--red)}
+.lb-action{font-size:11px;font-weight:600;cursor:pointer;padding:4px 11px;border-radius:6px;border:none;font-family:'Inter',sans-serif;white-space:nowrap}
+.ki-lock-bar.u .lb-action{background:var(--inv-bg);color:var(--inv);border:1px solid var(--inv-bd)}
+.ki-lock-bar.w .lb-action{background:var(--ag-bg);color:var(--ag);border:1px solid var(--ag-bd)}
+.ki-lock-bar.l .lb-action{background:var(--cl-bg);color:var(--cl);border:1px solid var(--cl-bd)}
+.ki-chat-hd{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.kch-av{width:36px;height:36px;border-radius:50%;background:var(--cl-bg);color:var(--cl);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.kch-inf .cn{font-size:13px;font-weight:600;margin-bottom:1px}.kch-inf .cs{font-size:11px;color:var(--sub)}
+.kch-acts{margin-left:auto;display:flex;gap:6px}
+.kcha{padding:5px 11px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid var(--border2);background:transparent;color:var(--sub);transition:all .18s;white-space:nowrap}
+.kcha:hover{color:var(--text)}.kcha.primary{background:var(--inv);color:#0e0e10;border-color:var(--inv)}
+.bien-mini{display:flex;gap:10px;align-items:center;background:var(--s2);border:1px solid var(--border2);border-radius:9px;padding:11px 14px;margin:10px 18px 0;flex-shrink:0}
+.bm-img{width:44px;height:44px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.bm-name{font-size:12px;font-weight:600;margin-bottom:2px}
+.bm-price{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:500;color:var(--ag);margin-bottom:2px}
+.bm-sub{font-size:10px;color:var(--sub)}
+.ki-msgs{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:9px}
+.kim{max-width:72%;display:flex;flex-direction:column;gap:3px}
+.kim.r{align-self:flex-start}.kim.s{align-self:flex-end}
+.kim-from{font-size:10px;color:var(--dim);margin-bottom:2px}
+.kim-bubble{padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.55}
+.kim.r .kim-bubble{background:var(--s2);border:1px solid var(--border2);border-radius:3px 10px 10px 10px}
+.kim.s .kim-bubble{background:var(--inv-bg);border:1px solid var(--inv-bd);border-radius:10px 3px 10px 10px}
+.kim-time{font-size:10px;color:var(--dim)}.kim.s .kim-time{text-align:right}
+.ki-doc{background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:8px 11px;display:flex;align-items:center;gap:8px;max-width:240px}
+.ki-doc .di{font-size:16px}.ki-doc .dn{font-size:11px;font-weight:500;margin-bottom:1px}.ki-doc .ds{font-size:10px;color:var(--sub)}
+.ki-inp-wrap{padding:12px 18px;border-top:1px solid var(--border);flex-shrink:0}
+.ki-inp-row{display:flex;gap:6px;align-items:flex-end}
+.ki-inp{flex:1;background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;resize:none;height:38px;transition:border-color .18s}
+.ki-inp:focus{border-color:var(--inv)}
+.ki-send{width:36px;height:36px;border-radius:8px;background:var(--inv);border:none;color:#0e0e10;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ki-tools{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.ki-tool{font-size:10px;color:var(--sub);cursor:pointer;padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;font-family:'Inter',sans-serif;transition:all .18s}
+.ki-tool:hover{color:var(--inv);border-color:var(--inv-bd)}
+.ki-state{margin:12px 18px;border-radius:9px;padding:13px;font-size:12px}
+.ki-state.w{background:var(--ag-bg);border:1px solid var(--ag-bd)}
+.ki-state.l{background:var(--red-bg);border:1px solid var(--red-bd)}
+.ki-state .st{font-weight:600;font-size:13px;margin-bottom:8px}
+.ki-state.w .st{color:var(--ag)}.ki-state.l .st{color:var(--red)}
+.ki-state .si{padding:3px 0;font-size:11px;color:var(--sub);line-height:1.5}
 </style>
 </head>
 <body>
-<p style="color:white;padding:20px">PARTE 1 OK</p>
+<nav>
+  <div class="logo" onclick="showTab('t-resumen')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="11" stroke="#B8934A" stroke-width="0.6" opacity="0.3"/>
+      <polygon points="14,3 8,13 12,13 10,21 17,11 13,11" fill="#B8934A" opacity="0.7"/>
+    </svg>
+    <div class="logo-word">REALTHORS</div>
+  </div>
+  <div class="nav-tabs">
+    <button class="ntab active" onclick="showTab('t-resumen')">Resumen</button>
+    <button class="ntab" onclick="showTab('t-inicio')">Inicio</button>
+    <button class="ntab" onclick="showTab('t-buscar')">Buscar</button>
+    <button class="ntab" onclick="showTab('t-misbienes')">Mis bienes</button>
+    <button class="ntab" onclick="showTab('t-keys')">Keys</button>
+    <button class="ntab" onclick="showTab('t-perfil')">Mi perfil</button>
+  </div>
+  <div class="nav-right">
+    <span class="badge-inv">Inversor</span>
+    <button class="btn-inv" onclick="openModal('modal-publish')">+ Publicar bien</button>
+    <div class="avatar">RK</div>
+  </div>
+</nav>
+
+<div class="modal-overlay" id="modal-publish">
+  <div class="modal">
+    <div class="modal-close" onclick="closeModal('modal-publish')">x</div>
+    <h2>Publicar un bien</h2>
+    <p class="modal-p">Todo lo que publiques en Realthors es off-market. Tu decides quien puede verlo.</p>
+    <div class="modal-sect">
+      <h4>Informacion del bien</h4>
+      <div class="modal-g2">
+        <select class="modal-sel"><option>Apartamento</option><option>Casa / Chalet</option><option>Oficina</option><option>Local</option><option>Solar</option><option>Villa</option></select>
+        <select class="modal-sel"><option>Venta</option><option>Alquiler</option><option>Venta + Alquiler</option></select>
+      </div>
+      <input class="modal-inp" placeholder="Ubicacion: ciudad, pais, direccion...">
+      <div class="modal-g2">
+        <input class="modal-inp" placeholder="Precio (euros)">
+        <input class="modal-inp" placeholder="m2 utiles">
+      </div>
+    </div>
+    <div class="modal-sect">
+      <h4>Visibilidad</h4>
+      <div class="vis-opts" id="pub-vis">
+        <div class="vis-opt sel" onclick="selVis(this,'pub-vis')"><div class="vo-ico">&#128101;</div><div class="vo-t"><div class="vo-title">Solo inversores</div><div class="vo-sub">Solo inversores verificados</div></div><div class="vo-ck">v</div></div>
+        <div class="vis-opt" onclick="selVis(this,'pub-vis')"><div class="vo-ico">&#129309;</div><div class="vo-t"><div class="vo-title">Inversores + Agencias</div><div class="vo-sub">Inversores y agencias verificadas</div></div><div class="vo-ck"></div></div>
+        <div class="vis-opt" onclick="selVis(this,'pub-vis')"><div class="vo-ico">&#127760;</div><div class="vo-t"><div class="vo-title">Todos los perfiles</div><div class="vo-sub">Clientes, agencias e inversores</div></div><div class="vo-ck"></div></div>
+        <div class="vis-opt" onclick="selVis(this,'pub-vis')"><div class="vo-ico">&#128274;</div><div class="vo-t"><div class="vo-title">Privado con filtro IA</div><div class="vo-sub">Solo perfiles que cumplan criterios que defines</div></div><div class="vo-ck"></div></div>
+      </div>
+    </div>
+    <button class="modal-confirm" onclick="closeModal('modal-publish')">Publicar bien</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-dossier">
+  <div class="modal">
+    <div class="modal-close" onclick="closeModal('modal-dossier')">x</div>
+    <h2>Dossier del candidato</h2>
+    <p class="modal-p">Perfil verificado por Realthors</p>
+    <div style="display:flex;align-items:center;gap:12px;background:var(--s2);border-radius:10px;padding:13px;margin-bottom:16px">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--cl-bg);color:var(--cl);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">MD</div>
+      <div><div style="font-size:14px;font-weight:600;margin-bottom:2px">Marie Dupont</div><div style="font-size:11px;color:var(--sub)">No-residente FR - Compradora - 600k-1M euros</div></div>
+      <div style="margin-left:auto;text-align:right"><div style="font-size:20px;font-weight:700;color:var(--inv)">96%</div><div style="font-size:9px;color:var(--sub)">compat.</div></div>
+    </div>
+    <div class="modal-sect">
+      <h4>Documentacion</h4>
+      <div class="doc-ok"><div class="di">&#128219;</div><div class="dn">Pasaporte vigente</div><div class="ds">Verificado</div></div>
+      <div class="doc-ok"><div class="di">&#127981;</div><div class="dn">Extractos bancarios</div><div class="ds">Verificado</div></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button style="flex:1;background:var(--inv);color:#0e0e10;border:none;border-radius:8px;padding:11px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="closeModal('modal-dossier')">&#128275; Unlock Key</button>
+      <button style="flex:1;background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);border-radius:8px;padding:11px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" onclick="closeModal('modal-dossier')">&#128274; Lock Key</button>
+    </div>
+  </div>
+</div>
+<div id="t-resumen" class="screen active">
+  <div class="res-layout">
+    <div class="res-left">
+      <div class="rl-av">&#128100;</div>
+      <div class="rl-name">Robert Kim</div>
+      <div class="rl-sub">Inversor patrimonial - Andorra</div>
+      <div class="rl-sep">Mi cartera</div>
+      <div class="rl-stat"><span>Bienes publicados</span><span class="green">4</span></div>
+      <div class="rl-stat"><span>Valor cartera</span><span class="green">6.8M euros</span></div>
+      <div class="rl-stat"><span>Rendimiento medio</span><span class="green">7.2%</span></div>
+      <div class="rl-sep">Keys recibidas</div>
+      <div class="rl-stat"><span>Unlocked</span><span class="green">9</span></div>
+      <div class="rl-stat"><span>Waiting</span><span style="color:var(--ag)">4</span></div>
+      <div class="rl-stat"><span>Locked</span><span style="color:var(--red)">2</span></div>
+      <div class="rl-sep">Lo que busco</div>
+      <div class="rl-stat"><span>Yield minimo</span><span>&gt;6%</span></div>
+      <div class="rl-stat"><span>Presupuesto max</span><span>3M euros</span></div>
+      <div class="rl-sep">Keys en mis bienes</div>
+      <div class="key-mini" onclick="showTab('t-misbienes')"><div class="km-icon">&#127969;</div><div class="km-name">Marie Dupont - Villa</div><div class="km-st u">Unlocked</div></div>
+      <div class="key-mini" onclick="showTab('t-misbienes')"><div class="km-icon">&#127748;</div><div class="km-name">Ahmed Saleh - Atic</div><div class="km-st u">Unlocked</div></div>
+      <div class="key-mini" onclick="showTab('t-misbienes')"><div class="km-icon">&#127956;</div><div class="km-name">Klaus Weber - Villa</div><div class="km-st w">Waiting</div></div>
+      <div class="qa">
+        <button class="qa-btn main" onclick="openModal('modal-publish')">+ Publicar bien</button>
+        <button class="qa-btn" onclick="showTab('t-inicio')">Ver oportunidades</button>
+        <button class="qa-btn" onclick="showTab('t-misbienes')">Gestionar mis bienes</button>
+        <button class="qa-btn" onclick="showTab('t-perfil')">Editar perfil</button>
+      </div>
+    </div>
+    <div class="scrollable">
+      <div class="page-hd">
+        <div><h2>Buenos dias, Robert</h2><p>3 Keys recibidas hoy - 48 nuevas oportunidades off-market</p></div>
+        <div class="page-hd-r"><button class="btn-ghost">Ver informes</button><button class="btn-inv" onclick="openModal('modal-publish')">+ Publicar bien</button></div>
+      </div>
+      <div class="krow">
+        <div class="kcard"><div class="klbl">Valor cartera</div><div class="kval">6.8M</div><div class="kdelta up">+8% este anio</div></div>
+        <div class="kcard"><div class="klbl">Rendimiento medio</div><div class="kval">7.2%</div><div class="kdelta up">+0.4pp</div></div>
+        <div class="kcard"><div class="klbl">Keys recibidas</div><div class="kval">15</div><div class="kdelta up">+3 esta semana</div></div>
+        <div class="kcard"><div class="klbl">Score cartera IA</div><div class="kval">8.9</div><div class="kdelta up">+0.2 este mes</div></div>
+      </div>
+      <div class="grid2">
+        <div class="score-w">
+          <div class="sw-head">Portfolio Investment Score IA</div>
+          <div class="sw-ring">
+            <div class="sw-num">8.9</div>
+            <div class="sw-bars">
+              <div class="swb"><div class="swb-lbl"><span>Rendimiento</span><span>9.2</span></div><div class="swb-track"><div class="swb-fill" style="width:92%"></div></div></div>
+              <div class="swb"><div class="swb-lbl"><span>Diversificacion</span><span>8.5</span></div><div class="swb-track"><div class="swb-fill" style="width:85%"></div></div></div>
+              <div class="swb"><div class="swb-lbl"><span>Liquidez</span><span>7.8</span></div><div class="swb-track"><div class="swb-fill" style="width:78%"></div></div></div>
+              <div class="swb"><div class="swb-lbl"><span>Revalorizacion</span><span>9.0</span></div><div class="swb-track"><div class="swb-fill" style="width:90%"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h4>Keys recibidas hoy <span>3 nuevas</span></h4>
+          <div class="row-item">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--cl-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--cl);flex-shrink:0">MD</div>
+            <div class="ri-info"><strong>Marie Dupont</strong><span>Villa Ordino - 96%</span></div>
+            <div class="ri-right"><span class="tag inv">Unlocked</span></div>
+          </div>
+          <div class="row-item">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--cl-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--cl);flex-shrink:0">KW</div>
+            <div class="ri-info"><strong>Klaus Weber</strong><span>Villa Ordino - 88%</span></div>
+            <div class="ri-right"><span class="tag ag">Waiting</span></div>
+          </div>
+          <div class="row-item">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--inv-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--inv);flex-shrink:0">AS</div>
+            <div class="ri-info"><strong>Ahmed Saleh</strong><span>Atic Escaldes - 84%</span></div>
+            <div class="ri-right"><span class="tag inv">Unlocked</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h4>Mis bienes <span>4 activos</span></h4>
+          <div class="row-item"><div style="font-size:18px">&#127969;</div><div class="ri-info"><strong>Villa Ordino</strong><span>2.200.000 euros - 12 Keys</span></div><div class="ri-right green">Activo</div></div>
+          <div class="row-item"><div style="font-size:18px">&#127748;</div><div class="ri-info"><strong>Atic Escaldes</strong><span>850.000 euros - 4 Keys</span></div><div class="ri-right green">Activo</div></div>
+          <div class="row-item"><div style="font-size:18px">&#127970;</div><div class="ri-info"><strong>Oficina AND</strong><span>490.000 euros - 7 Keys</span></div><div class="ri-right green">Activo</div></div>
+          <div class="row-item"><div style="font-size:18px">&#127956;</div><div class="ri-info"><strong>Solar Ordino</strong><span>320.000 euros - 2 Keys</span></div><div class="ri-right amber">Revision</div></div>
+        </div>
+        <div class="card">
+          <h4>Guardados <span>5 favoritos</span></h4>
+          <div class="row-item"><div class="ri-info"><strong>Villa Pas de la Casa 3.1M</strong><span>Score 9.4 - Yield 8.1%</span></div><div class="ri-right green">9.4</div></div>
+          <div class="row-item"><div class="ri-info"><strong>Chalet La Massana 1.8M</strong><span>Score 8.7 - Yield 6.9%</span></div><div class="ri-right green">8.7</div></div>
+          <div class="row-item"><div class="ri-info"><strong>Local AND 680k</strong><span>Score 8.2 - Yield 7.4%</span></div><div class="ri-right green">8.2</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="t-inicio" class="screen">
+  <div class="inicio-layout">
+    <div class="inicio-main">
+      <div class="om-banner">&#128274; <strong>Zona exclusiva off-market</strong> — Solo inversores verificados</div>
+      <div class="page-hd" style="margin-bottom:14px">
+        <div><h2>Oportunidades para ti</h2><p>24 activos off-market encajan con tu perfil</p></div>
+      </div>
+      <div class="feed-search">
+        <div class="fs-grid">
+          <div class="sf"><label>Ubicacion</label><input type="text" placeholder="Pais, ciudad, zona..."></div>
+          <div class="sf"><label>Yield min</label><select><option>Cualquiera</option><option>&gt;4%</option><option>&gt;6%</option><option>&gt;8%</option></select></div>
+          <div class="sf"><label>Precio max</label><input type="text" placeholder="Sin limite"></div>
+          <button class="sbtn" onclick="showTab('t-buscar')">Buscar</button>
+        </div>
+        <div class="ai-row">
+          <span>IA:</span>
+          <span class="achip">Villa yield &gt;7%, AND</span>
+          <span class="achip">Comercial Lisboa</span>
+          <span class="achip">Score &gt;9, hasta 2M</span>
+        </div>
+      </div>
+      <div class="feed-filters">
+        <div class="ff on">Todos</div>
+        <div class="ff">Score &gt;9</div>
+        <div class="ff">Yield &gt;8%</div>
+        <div class="ff">Solo inversores</div>
+        <div class="ff">Nuevos hoy</div>
+      </div>
+      <div id="feed-cards"></div>
+    </div>
+    <div class="inicio-right">
+      <div class="hr-title">Actividad reciente</div>
+      <div class="notif"><div class="ni-ic inv">&#128505;</div><div class="ni-b"><p>Key recibida: <b>Marie Dupont</b> - Villa Ordino</p><span>Hace 2h</span></div></div>
+      <div class="notif"><div class="ni-ic ag">&#127968;</div><div class="ni-b"><p>Nuevo off-market: <b>Villa Pas de la Casa 3.1M</b></p><span>Ayer</span></div></div>
+      <div class="notif"><div class="ni-ic inv">&#128505;</div><div class="ni-b"><p>Key recibida: <b>Ahmed Saleh</b> - Atic Escaldes</p><span>Hace 2 dias</span></div></div>
+      <div class="saved-sec">
+        <div class="hr-title" style="margin-top:16px">Guardados</div>
+        <div class="saved-card"><div class="sc-top"><span class="sc-price">3.100.000 euros</span><span class="sc-score">9.4</span></div><div class="sc-loc">Pas de la Casa - Yield 8.1%</div></div>
+        <div class="saved-card"><div class="sc-top"><span class="sc-price">1.800.000 euros</span><span class="sc-score">8.7</span></div><div class="sc-loc">La Massana - Yield 6.9%</div></div>
+        <div class="saved-card"><div class="sc-top"><span class="sc-price">680.000 euros</span><span class="sc-score">8.2</span></div><div class="sc-loc">Escaldes - Yield 7.4%</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="t-buscar" class="screen">
+  <div class="buscar-layout">
+    <div class="filters-col">
+      <div class="fc-head">Buscar</div>
+      <div class="fc-sub">Mercado off-market exclusivo</div>
+      <span class="om-badge-bar">Off-Market - Solo inversores verificados</span>
+      <div class="ai-block">
+        <label>IA - Busqueda natural</label>
+        <textarea class="ai-ta" placeholder="Describe el activo que buscas...">Residencial, yield &gt;6%, AND o PT</textarea>
+        <button class="ai-go">Buscar con IA</button>
+      </div>
+      <div class="fgroup"><label>Tipo</label><div class="chips"><div class="chip on">Residencial</div><div class="chip on">Comercial</div><div class="chip">Turistico</div><div class="chip">Solar</div></div></div>
+      <div class="fgroup"><label>Precio</label><div class="rrow"><input class="rinp" placeholder="Minimo"><input class="rinp" placeholder="Maximo"></div></div>
+      <div class="fgroup"><label>Yield minimo</label><div class="chips"><div class="chip">&gt;4%</div><div class="chip">&gt;5%</div><div class="chip on">&gt;6%</div><div class="chip">&gt;8%</div></div></div>
+      <div class="fgroup"><label>Score minimo</label><div class="chips"><div class="chip">&gt;7</div><div class="chip on">&gt;8</div><div class="chip">&gt;9</div></div></div>
+      <div class="fgroup"><label>Criterios</label><div class="chips"><div class="chip on">No-residente OK</div><div class="chip on">Sociedad</div><div class="chip">Smart contract</div><div class="chip">Family office</div></div></div>
+      <div class="fgroup"><label>Zona</label><div class="chips"><div class="chip on">Andorra</div><div class="chip">Espania</div><div class="chip on">Portugal</div><div class="chip">Internacional</div></div></div>
+    </div>
+    <div class="results-col">
+      <div class="rh"><div><h2>48 bienes off-market</h2><p>Filtrados por tu perfil - Score &gt;8</p></div><select class="rsort"><option>Score IA</option><option>Yield</option><option>Precio asc</option><option>Precio desc</option></select></div>
+      <div class="pgrid" id="pgrid"></div>
+    </div>
+  </div>
+</div>
+<div id="t-misbienes" class="screen">
+  <div class="mb-layout">
+    <div class="mb-main">
+      <div class="page-hd">
+        <div><h2>Mis bienes</h2><p>4 publicados - 15 Keys recibidas - Todo off-market</p></div>
+        <div class="page-hd-r"><button class="btn-inv" onclick="openModal('modal-publish')">+ Publicar bien</button></div>
+      </div>
+      <div class="publish-cta" onclick="openModal('modal-publish')">
+        <div class="pc-icon">+</div>
+        <div class="pc-text"><h3>Publicar un bien off-market</h3><p>Define precio, tipo y ubicacion. Elige quien puede verlo.</p></div>
+        <div class="pc-arrow">&#8594;</div>
+      </div>
+      <div id="mb-list"></div>
+    </div>
+    <div class="mb-side" id="mb-detail">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--dim);gap:10px">
+        <div style="font-size:36px;opacity:.3">&#127968;</div>
+        <p style="font-size:12px">Selecciona un bien</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="t-perfil" class="screen">
+  <div class="perf-layout">
+    <div class="perf-left">
+      <div class="ph-top"><div class="ph-av">&#128100;</div><div><div class="ph-name">Robert Kim</div><div class="ph-sub">Perfil Inversor - Residente Andorra</div></div></div>
+      <div class="prog-wrap"><div class="pl"><span>Perfil completado</span><b>82%</b></div><div class="prog-track"><div class="prog-fill" style="width:82%"></div></div></div>
+      <span class="sep">Datos personales</span>
+      <div class="frow"><label>Nombre</label><input class="finp" value="Robert Kim"></div>
+      <div class="frow2"><div><label>Nacionalidad</label><input class="finp" value="Coreana"></div><div><label>Residencia</label><input class="finp" value="Andorra"></div></div>
+      <div class="frow2"><div><label>Email</label><input class="finp" value="r.kim@patrimonial.kr"></div><div><label>Telefono</label><input class="finp" value="+376 600 900"></div></div>
+      <div class="frow"><label>Tipo de inversor</label><div class="fpills"><div class="fpill active">Particular</div><div class="fpill">Family Office</div><div class="fpill">Fondo</div></div></div>
+      <span class="sep">Perfil financiero</span>
+      <div class="frow2"><div><label>Capacidad inversion</label><input class="finp" value="Hasta 3.000.000"></div><div><label>Yield minimo</label><input class="finp" value="6%"></div></div>
+      <div class="frow"><label>Horizonte</label><div class="fpills"><div class="fpill">Corto</div><div class="fpill">Medio</div><div class="fpill active">Largo +5a</div></div></div>
+      <div class="frow"><label>Estrategia</label><div class="fpills"><div class="fpill active">Patrimonio</div><div class="fpill active">Alquiler</div><div class="fpill">Flip</div></div></div>
+      <div class="frow"><label>Entidad bancaria</label><input class="finp" value="Andbank"></div>
+      <div class="frow"><label>Sociedad</label><input class="finp" value="RK Patrimonial SL"></div>
+      <span class="sep">Documentacion</span>
+      <div class="doc-ok"><div class="di">&#128219;</div><div class="dn">Pasaporte_Kim_Robert.pdf</div><div class="ds">Verificado</div></div>
+      <div class="doc-ok"><div class="di">&#127981;</div><div class="dn">Extractos_Andbank_2025.pdf</div><div class="ds">Verificado</div></div>
+      <div class="doc-box">Subir documentos</div>
+      <button class="save-btn">Guardar perfil</button>
+    </div>
+    <div class="perf-right">
+      <div class="pref-card"><h4>Criterios de inversion</h4>
+        <div class="pref-row"><span>Yield minimo</span><span>&gt;6%</span></div>
+        <div class="pref-row"><span>Score minimo</span><span>&gt;8.0</span></div>
+        <div class="pref-row"><span>Presupuesto max</span><span>3.000.000 euros</span></div>
+        <div class="pref-row"><span>Horizonte</span><span>Largo plazo</span></div>
+        <div class="pref-row"><span>Estrategia</span><span>Patrimonio + Alquiler</span></div>
+      </div>
+      <div class="pref-card"><h4>Zonas de interes</h4>
+        <div class="chips"><div class="chip on">Andorra</div><div class="chip on">Portugal</div><div class="chip">Espania</div></div>
+      </div>
+      <div class="pref-card"><h4>Keys - Resumen</h4>
+        <div class="pref-row"><span>Total recibidas</span><span>15</span></div>
+        <div class="pref-row"><span>Unlocked</span><span style="color:var(--inv)">9</span></div>
+        <div class="pref-row"><span>Waiting</span><span style="color:var(--ag)">4</span></div>
+        <div class="pref-row"><span>Locked</span><span style="color:var(--red)">2</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="t-keys" class="screen">
+  <div class="keys-inv-layout">
+    <div class="ki-col">
+      <div class="ki-col-top">
+        <h3>Keys recibidas</h3>
+        <input class="ki-col-search" type="text" placeholder="Buscar candidato o bien...">
+        <div class="bien-tabs" id="bien-tabs">
+          <button class="btab active" onclick="switchBien(0,this)">Villa Ordino</button>
+          <button class="btab" onclick="switchBien(1,this)">Atic Escaldes</button>
+          <button class="btab" onclick="switchBien(2,this)">Oficina AND</button>
+          <button class="btab" onclick="switchBien(3,this)">Solar</button>
+        </div>
+      </div>
+      <div class="ki-stabs">
+        <button class="kistab active" onclick="filterKi(this,'all')">Todas <span class="kistab-c inv">12</span></button>
+        <button class="kistab" onclick="filterKi(this,'u')">Unlocked <span class="kistab-c inv">7</span></button>
+        <button class="kistab" onclick="filterKi(this,'w')">Waiting <span class="kistab-c ag">3</span></button>
+        <button class="kistab" onclick="filterKi(this,'l')">Locked <span class="kistab-c red">2</span></button>
+      </div>
+      <div class="ki-list" id="ki-list"></div>
+    </div>
+    <div class="ki-chat" id="ki-chat">
+      <div class="ki-empty">
+        <div class="ke-ico">&#128505;</div>
+        <p>Selecciona una Key para gestionar la conversacion</p>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function showTab(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});
+  document.querySelectorAll('.ntab').forEach(function(t){t.classList.remove('active')});
+  var el=document.getElementById(id);
+  if(el) el.classList.add('active');
+  var map={t_resumen:0,t_inicio:1,t_buscar:2,t_misbienes:3,t_keys:4,t_perfil:5};
+  var key=id.replace(/-/g,'_');
+  if(map[key]!==undefined) document.querySelectorAll('.ntab')[map[key]].classList.add('active');
+}
+function openModal(id){var el=document.getElementById(id);if(el)el.classList.add('open')}
+function closeModal(id){var el=document.getElementById(id);if(el)el.classList.remove('open')}
+function selVis(el,groupId){
+  var g=document.getElementById(groupId);if(!g)return;
+  g.querySelectorAll('.vis-opt').forEach(function(o){o.classList.remove('sel');o.querySelector('.vo-ck').textContent='';});
+  el.classList.add('sel');el.querySelector('.vo-ck').textContent='v';
+}
+document.querySelectorAll('.chip').forEach(function(c){c.addEventListener('click',function(){this.classList.toggle('on')})});
+document.querySelectorAll('.fpills').forEach(function(g){g.querySelectorAll('.fpill').forEach(function(p){p.addEventListener('click',function(){g.querySelectorAll('.fpill').forEach(function(x){x.classList.remove('active')});this.classList.add('active')})})});
+document.querySelectorAll('.ff').forEach(function(f){f.addEventListener('click',function(){document.querySelectorAll('.ff').forEach(function(x){x.classList.remove('on')});this.classList.add('on')})});
+
+var feedData=[
+  {price:'2.200.000 euros',loc:'Ordino, AND',sqm:280,beds:6,yld:'8.1%',score:'9.2',reval:'+20%',vis:'Solo inversores',why:'Yield 8.1% por encima de tu minimo - Score 9.2 - Revalorizacion +20%',bg:'#0c0f06',e:'&#127969;',isNew:true},
+  {price:'3.100.000 euros',loc:'Pas de la Casa, AND',sqm:320,beds:7,yld:'7.4%',score:'9.4',reval:'+18%',vis:'Solo inversores',why:'Score mas alto de tu feed - Oportunidad exclusiva',bg:'#100804',e:'&#127956;',isNew:true},
+  {price:'1.800.000 euros',loc:'La Massana, AND',sqm:220,beds:5,yld:'6.9%',score:'8.7',reval:'+15%',vis:'Inv + Agencias',why:'Dentro de tu presupuesto - Yield 6.9% - Alta demanda',bg:'#080410',e:'&#127956;',isNew:false},
+  {price:'680.000 euros',loc:'Escaldes, AND',sqm:95,beds:2,yld:'7.8%',score:'8.1',reval:'+9%',vis:'Inv + Agencias',why:'Yield 7.8% excelente - Escaldes zona prime',bg:'#06080f',e:'&#127748;',isNew:false},
+];
+var gridData=[
+  {price:'2.200.000 euros',loc:'Ordino, AND',yld:'8.1%',score:'9.2',reval:'+20%',vis:'Solo inversores',bg:'#0c0f06',e:'&#127969;'},
+  {price:'3.100.000 euros',loc:'Pas de la Casa',yld:'7.4%',score:'9.4',reval:'+18%',vis:'Solo inversores',bg:'#100804',e:'&#127956;'},
+  {price:'1.800.000 euros',loc:'La Massana',yld:'6.9%',score:'8.7',reval:'+15%',vis:'Inv + Agencias',bg:'#080410',e:'&#127956;'},
+  {price:'680.000 euros',loc:'Escaldes',yld:'7.8%',score:'8.1',reval:'+9%',vis:'Inv + Agencias',bg:'#06080f',e:'&#127748;'},
+  {price:'4.500.000 euros',loc:'Ordino, AND',yld:'9.1%',score:'9.6',reval:'+22%',vis:'Solo inversores',bg:'#0f0c04',e:'&#127970;'},
+  {price:'950.000 euros',loc:'Andorra la Vella',yld:'6.2%',score:'8.4',reval:'+11%',vis:'Todos',bg:'#04080f',e:'&#127968;'},
+];
+var mbData=[
+  {emoji:'&#127969;',name:'Villa Ordino',ref:'RT-INV-0301',price:'2.200.000 euros',type:'Venta',st:'on',stLabel:'Activo',keys:12,vis:'Solo inversores',vs:0,bg:'#0c0f06',score:'9.2',yld:'8.1%'},
+  {emoji:'&#127748;',name:'Atic Escaldes',ref:'RT-INV-0287',price:'850.000 euros',type:'Venta + Alquiler',st:'on',stLabel:'Activo',keys:4,vis:'Inv + Agencias',vs:1,bg:'#04080f',score:'8.4',yld:'5.8%'},
+  {emoji:'&#127970;',name:'Oficina AND',ref:'RT-INV-0254',price:'490.000 euros',type:'Venta',st:'on',stLabel:'Activo',keys:7,vis:'Todos',vs:2,bg:'#080508',score:'8.0',yld:'6.8%'},
+  {emoji:'&#127956;',name:'Solar Ordino',ref:'RT-INV-0219',price:'320.000 euros',type:'Venta',st:'pen',stLabel:'En revision',keys:2,vis:'Solo inversores',vs:0,bg:'#0f0a04',score:'7.5',yld:'—'},
+];
+var keysByBien=[
+  [{av:'MD',name:'Marie Dupont',sub:'No-residente FR - 96%',st:'u',sl:'Unlocked'},{av:'KW',name:'Klaus Weber',sub:'Familia DE - 88%',st:'w',sl:'Waiting'},{av:'AS',name:'Ahmed Saleh',sub:'Inversor UAE - 84%',st:'u',sl:'Unlocked'}],
+  [{av:'LP',name:'Lena Petrova',sub:'Inversora RU - 80%',st:'u',sl:'Unlocked'},{av:'JM',name:'Jean Martin',sub:'No-residente FR - 74%',st:'w',sl:'Waiting'}],
+  [{av:'RB',name:'Rafael Branco',sub:'Inversor PT - 91%',st:'u',sl:'Unlocked'},{av:'CL',name:'Chen Li',sub:'CN - 85%',st:'u',sl:'Unlocked'},{av:'SK',name:'Sara Klein',sub:'DE - 72%',st:'l',sl:'Locked'}],
+  [{av:'HN',name:'Hiroshi Nakamura',sub:'JP - 78%',st:'w',sl:'Waiting'}],
+];
+var visLabels=['Solo inversores','Inv + Agencias','Todos','Privado IA'];
+var visIcons=['&#128101;','&#129309;','&#127760;','&#128274;'];
+var currentBien=0;
+var currentFilter='all';
+
+window.onload=function(){
+  var fc=document.getElementById('feed-cards');
+  if(fc) feedData.forEach(function(p){
+    var d=document.createElement('div');d.className='feed-card';
+    d.innerHTML='<div class="fc-img" style="background:linear-gradient(135deg,'+p.bg+',#040404)"><div>'+p.e+'</div><span class="fc-score-pill">Score '+p.score+'</span><span class="fc-om-badge">Off-Market</span>'+(p.isNew?'<span class="fc-new">Nuevo</span>':'')+'</div><div class="fc-body"><div class="fc-price">'+p.price+'</div><div class="fc-loc">'+p.loc+' - '+p.sqm+'m2 - '+p.beds+' hab.</div><div class="fc-metrics"><div class="fc-met green"><div class="mv">'+p.yld+'</div><div class="mk">Yield</div></div><div class="fc-met amber"><div class="mv">'+p.reval+'</div><div class="mk">Revalorizacion</div></div><div class="fc-met blue"><div class="mv">'+p.score+'</div><div class="mk">Score IA</div></div></div><div class="fc-why"><b>Por que encaja:</b> '+p.why+'</div><div class="fc-vis">Visible para: <span>'+p.vis+'</span></div><div class="fc-actions"><button class="fca">Guardar</button><button class="fca">Analisis IA</button><button class="fca main">Solicitar Key</button></div></div>';
+    fc.appendChild(d);
+  });
+
+  var pg=document.getElementById('pgrid');
+  if(pg) gridData.forEach(function(p){
+    var c=document.createElement('div');c.className='feed-card';
+    c.innerHTML='<div class="fc-img" style="background:linear-gradient(135deg,'+p.bg+',#040404)"><div>'+p.e+'</div><span class="fc-score-pill">Score '+p.score+'</span><span class="fc-om-badge">Off-Market</span></div><div class="fc-body"><div class="fc-price">'+p.price+'</div><div class="fc-loc">'+p.loc+'</div><div class="fc-metrics"><div class="fc-met green"><div class="mv">'+p.yld+'</div><div class="mk">Yield</div></div><div class="fc-met amber"><div class="mv">'+p.reval+'</div><div class="mk">Revalorizacion</div></div><div class="fc-met blue"><div class="mv">'+p.score+'</div><div class="mk">Score IA</div></div></div><div class="fc-vis" style="margin-top:8px">Visible para: <span>'+p.vis+'</span></div><div class="fc-actions" style="margin-top:8px"><button class="fca">Guardar</button><button class="fca main">Solicitar Key</button></div></div>';
+    pg.appendChild(c);
+  });
+
+  var mbl=document.getElementById('mb-list');
+  if(mbl) mbData.forEach(function(p,i){
+    var el=document.createElement('div');
+    el.className='mb-item'+(i===0?' active':'');
+    el.innerHTML='<div class="mbi-img" style="background:linear-gradient(135deg,'+p.bg+',#040404)">'+p.emoji+'</div><div class="mbi-info"><div class="mbi-name">'+p.name+'</div><div class="mbi-sub">'+p.ref+' - '+p.type+'</div><div class="mbi-tags"><span class="tag inv">Off-Market</span><span class="tag ag">'+p.vis+'</span><span class="tag inv">'+p.keys+' Keys</span></div></div><div class="mbi-right"><div class="mbi-price">'+p.price+'</div><div class="mbi-st '+p.st+'">'+p.stLabel+'</div></div>';
+    el.onclick=function(){document.querySelectorAll('.mb-item').forEach(function(x){x.classList.remove('active')});el.classList.add('active');showMbDetail(p,i)};
+    mbl.appendChild(el);
+    if(i===0) showMbDetail(p,0);
+  });
+
+  if(document.getElementById('ki-list')) renderKiList();
+};
+
+function showMbDetail(p,idx){
+  var visOpts=visLabels.map(function(v,vi){return '<div class="vis-opt '+(vi===p.vs?'sel':'')+'\" onclick="detSelVis(this)"><div class="vo-ico">'+visIcons[vi]+'</div><div class="vo-t"><div class="vo-title">'+v+'</div></div><div class="vo-ck">'+(vi===p.vs?'v':'')+'</div></div>'}).join('');
+  var keysHtml=(keysByBien[idx]||[]).map(function(k){return '<div class="key-rcv" onclick="openModal(\'modal-dossier\')"><div class="kr-av">'+k.av+'</div><div class="kr-info"><strong>'+k.name+'</strong><span>'+k.sub+'</span></div><span class="kr-st '+k.st+'">'+k.sl+'</span></div>'}).join('');
+  document.getElementById('mb-detail').innerHTML='<div class="det-head">Gestion del bien</div><div class="det-img" style="background:linear-gradient(135deg,'+p.bg+',#040404)">'+p.emoji+'</div><div class="det-title">'+p.name+'</div><div class="det-ref">'+p.ref+' - Off-Market</div><div class="det-sect">Datos</div><div class="det-row"><span>Precio</span><span>'+p.price+'</span></div><div class="det-row"><span>Estado</span><span>'+p.stLabel+'</span></div><div class="det-row"><span>Visibilidad</span><span>'+p.vis+'</span></div><div class="det-row"><span>Keys</span><span>'+p.keys+'</span></div><div class="det-row"><span>Score IA</span><span>'+p.score+'</span></div><div class="det-sect">Cambiar visibilidad</div><div class="vis-opts" id="det-vis">'+visOpts+'</div><div class="det-sect">Keys recibidas</div>'+keysHtml+'<div class="det-actions"><button class="btn-inv" style="width:100%;border-radius:7px;padding:10px;font-size:12px">Editar ficha</button><button class="btn-ghost" style="width:100%;border-radius:7px;padding:9px;font-size:12px">Ver analytics</button></div>';
+}
+function detSelVis(el){
+  document.getElementById('det-vis').querySelectorAll('.vis-opt').forEach(function(o){o.classList.remove('sel');o.querySelector('.vo-ck').textContent=''});
+  el.classList.add('sel');el.querySelector('.vo-ck').textContent='v';
+}
+
+function switchBien(idx,el){
+  currentBien=idx;
+  document.querySelectorAll('.btab').forEach(function(b){b.classList.remove('active')});
+  el.classList.add('active');
+  renderKiList();
+  document.getElementById('ki-chat').innerHTML='<div class="ki-empty"><div class="ke-ico">&#128505;</div><p>Selecciona una Key</p></div>';
+}
+function filterKi(el,status){
+  currentFilter=status;
+  document.querySelectorAll('.kistab').forEach(function(t){t.classList.remove('active')});
+  el.classList.add('active');
+  renderKiList();
+}
+function renderKiList(){
+  var keys=keysByBien[currentBien]||[];
+  var list=document.getElementById('ki-list');
+  if(!list) return;
+  list.innerHTML='';
+  var labels={u:'Unlocked',w:'Waiting',l:'Locked'};
+  keys.forEach(function(k,i){
+    if(currentFilter!=='all'&&k.lock!==currentFilter) return;
+    var el=document.createElement('div');
+    el.className='ki-item'+(i===0&&currentFilter==='all'?' active':'');
+    el.innerHTML='<div class="ki-av">'+k.av+'</div><div class="ki-inf"><div class="kn">'+k.name+'<span>hoy</span></div><div class="kprop">'+k.prop+'</div><div class="kprev">'+k.sub+'</div><div><span class="ki-lock '+k.st+'">'+labels[k.st]+'</span></div></div>'+(k.st==='u'?'<div class="ki-unread"></div>':'');
+    el.onclick=(function(key,elem){return function(){
+      document.querySelectorAll('.ki-item').forEach(function(x){x.classList.remove('active')});
+      elem.classList.add('active');
+      openKiChat(key);
+    }})(k,el);
+    list.appendChild(el);
+  });
+  var first=keys.find(function(k){return currentFilter==='all'||k.st===currentFilter});
+  if(first) openKiChat(first);
+}
+function openKiChat(k){
+  var ca=document.getElementById('ki-chat');
+  if(!ca) return;
+  var isU=k.st==='u',isW=k.st==='w',isL=k.st==='l';
+  var lockLabel=isU?'&#128275; Unlocked - Conversacion activa':isW?'&#9203; Waiting to unlock - Revisando dossier':'&#128274; Locked - Key rechazada';
+  var lockAction=isW?'<button class="lb-action" onclick="openModal(\'modal-dossier\')">Ver dossier</button>':isL?'<button class="lb-action">Ver motivo</button>':'';
+  var html='<div class="ki-lock-bar '+(isU?'u':isW?'w':'l')+'"><span>'+lockLabel+'</span>'+lockAction+'</div>';
+  var acts=isU?'<button class="kcha" onclick="openModal(\'modal-dossier\')">&#128100; Dossier</button><button class="kcha">&#128197; Visita</button><button class="kcha primary">&#9989; Aceptado</button>':isW?'<button class="kcha primary" onclick="openModal(\'modal-dossier\')">Revisar dossier</button>':'<button class="kcha">Ver motivo</button>';
+  html+='<div class="ki-chat-hd"><div class="kch-av">'+k.av+'</div><div class="kch-inf"><div class="cn">'+k.name+'</div><div class="cs">'+k.prop+' - Key '+(isU?'Unlocked':isW?'Waiting':'Locked')+'</div></div><div class="kch-acts">'+acts+'</div></div>';
+  var bien=mbData[currentBien];
+  if(bien) html+='<div class="bien-mini"><div class="bm-img" style="background:linear-gradient(135deg,'+bien.bg+',#040404)">'+bien.emoji+'</div><div><div class="bm-name">'+bien.name+'</div><div class="bm-price">'+bien.price+'</div><div class="bm-sub">Score '+bien.score+' - Yield '+bien.yld+' - Off-Market</div></div></div>';
+  if(isW) html+='<div class="ki-state w"><div class="st">&#9203; Waiting to unlock</div><div class="si">Dossier recibido. Revisa y decide si aceptas o rechazas la Key.</div></div>';
+  else if(isL) html+='<div class="ki-state l"><div class="st">&#128274; Key Locked</div><div class="si">Esta Key fue rechazada. El candidato ha sido notificado.</div></div>';
+  var msgsHtml='';
+  if(isU&&k.msgs&&k.msgs.length){
+    msgsHtml=k.msgs.map(function(m){
+      if(m.t==='doc') return '<div class="kim r"><div class="kim-from">'+m.from+'</div><div class="ki-doc"><div class="di">&#128196;</div><div><div class="dn">'+m.name+'</div><div class="ds">'+m.size+'</div></div></div><div class="kim-time">'+m.time+'</div></div>';
+      return '<div class="kim '+m.t+'">'+(m.t==='r'?'<div class="kim-from">'+m.from+'</div>':'')+'<div class="kim-bubble">'+m.text+'</div><div class="kim-time">'+m.time+'</div></div>';
+    }).join('');
+  } else if(!isU){
+    msgsHtml='<div style="text-align:center;padding:30px 20px;color:var(--dim)"><div style="font-size:26px;margin-bottom:10px">'+(isW?'&#9203;':'&#128274;')+'</div><div style="font-size:13px;font-weight:500;color:'+(isW?'var(--ag)':'var(--red)')+';margin-bottom:6px">'+(isW?'Waiting to unlock':'Locked')+'</div><div style="font-size:12px">'+(isW?'La conversacion se abrira cuando aceptes la Key.':'Conversacion no disponible.')+'</div></div>';
+  }
+  html+='<div class="ki-msgs">'+msgsHtml+'</div>';
+  if(isU) html+='<div class="ki-inp-wrap"><div class="ki-inp-row"><textarea class="ki-inp" placeholder="Escribe un mensaje..."></textarea><button class="ki-send">&#8593;</button></div><div class="ki-tools"><button class="ki-tool">&#128206; Adjuntar</button><button class="ki-tool">&#128197; Visita</button><button class="ki-tool">&#129302; IA</button></div></div>';
+  ca.innerHTML=html;
+  var msgs=ca.querySelector('.ki-msgs');
+  if(msgs) msgs.scrollTop=msgs.scrollHeight;
+}
+</script>
 </body>
 </html>
