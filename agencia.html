@@ -40,7 +40,21 @@ async function publishProperty(){
   var {error}=await sbAuth.from('properties').insert({
     title:title,price:parseFloat(price),type:type,operation:op,
     surface:sqm?parseFloat(sqm):null,location:location,country:country,
-    description:desc,owner_id:userId,status:'activa',visibility:'todos',
+    visibility:'todos',
+bathrooms:document.getElementById('pub-baths').value?parseInt(document.getElementById('pub-baths').value):null,
+has_terrace:document.getElementById('pub-terrace').checked,
+has_parking:document.getElementById('pub-parking').checked,
+has_pool:document.getElementById('pub-pool').checked,
+has_elevator:document.getElementById('pub-elevator').checked,
+has_storage:document.getElementById('pub-storage').checked,
+furnished:document.getElementById('pub-furnished').checked,
+non_resident_ok:document.getElementById('pub-nonresident').checked,
+allows_society:document.getElementById('pub-society').checked,
+tourist_use:document.getElementById('pub-tourist').checked,
+pets_allowed:document.getElementById('pub-pets').checked,
+year_built:document.getElementById('pub-year').value?parseInt(document.getElementById('pub-year').value):null,
+energy_cert:document.getElementById('pub-energy').value||null,
+estimated_yield:document.getElementById('pub-yield').value?parseFloat(document.getElementById('pub-yield').value):null
 bedrooms:document.getElementById('pub-beds').value?parseInt(document.getElementById('pub-beds').value):null,
 bathrooms:document.getElementById('pub-baths').value?parseInt(document.getElementById('pub-baths').value):null
   });
