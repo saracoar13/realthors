@@ -55,8 +55,6 @@ pets_allowed:document.getElementById('pub-pets').checked,
 year_built:document.getElementById('pub-year').value?parseInt(document.getElementById('pub-year').value):null,
 energy_cert:document.getElementById('pub-energy').value||null,
 estimated_yield:document.getElementById('pub-yield').value?parseFloat(document.getElementById('pub-yield').value):null
-bedrooms:document.getElementById('pub-beds').value?parseInt(document.getElementById('pub-beds').value):null,
-bathrooms:document.getElementById('pub-baths').value?parseInt(document.getElementById('pub-baths').value):null
   });
   if(error){err.textContent='Error: '+error.message;err.className='msg error show';}
   else{suc.textContent='Propiedad publicada.';suc.className='msg success show';setTimeout(function(){closeModal('modal-publish');},1500);}
