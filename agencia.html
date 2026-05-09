@@ -1082,5 +1082,41 @@ document.getElementById('btn-logout').addEventListener('click', function(){
   });
 });
 </script>
+  <div class="modal-overlay" id="modal-publish">
+  <div class="modal">
+    <div class="modal-close" onclick="closeModal('modal-publish')">x</div>
+    <h2>Nueva propiedad</h2>
+    <p class="modal-p">Rellena los datos y publica en Realthors</p>
+    <div class="frow">
+      <label>Título</label>
+      <input class="finp" id="pub-title" placeholder="Ej: Àtic amb terrassa a Escaldes">
+    </div>
+    <div class="frow2">
+      <div><label>Precio (€)</label><input class="finp" id="pub-price" placeholder="450000" type="number"></div>
+      <div><label>Tipo</label><select class="finp" id="pub-type"><option>Apartamento</option><option>Casa</option><option>Villa</option><option>Oficina</option><option>Local</option><option>Solar</option></select></div>
+    </div>
+    <div class="frow2">
+      <div><label>Operación</label><select class="finp" id="pub-op"><option>Venta</option><option>Alquiler</option><option>Venta + Alquiler</option></select></div>
+      <div><label>m²</label><input class="finp" id="pub-sqm" placeholder="95" type="number"></div>
+    </div>
+    <div class="frow">
+      <label>Ubicación</label>
+      <input class="finp" id="pub-location" placeholder="Escaldes-Engordany, Andorra">
+    </div>
+    <div class="frow">
+      <label>País</label>
+      <input class="finp" id="pub-country" placeholder="Andorra">
+    </div>
+    <div class="frow">
+      <label>Descripción</label>
+      <textarea class="finp" id="pub-desc" placeholder="Describe la propiedad..." style="height:80px;resize:none"></textarea>
+    </div>
+    <div class="msg error" id="pub-error"></div>
+    <div class="msg success" id="pub-success"></div>
+    <button class="modal-confirm" onclick="publishProperty()">Publicar propiedad</button>
+  </div>
+</div>
+  </body>
+</html>
 </body>
 </html>
