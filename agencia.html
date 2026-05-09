@@ -1065,6 +1065,19 @@ if(cb){
   cb.parentElement.appendChild(barsRow);
   cb.remove();
 }
+sbAuth.auth.getSession().then(function(res){
+  if(res.data.session){
+    var name = res.data.session.user.user_metadata.full_name || res.data.session.user.email;
+    var initials = name.split(' ').map(function(n){return n[0]}).join('').substring(0,2).toUpperCase();
+    var av = document.getElementById('user-avatar');
+    if(av) av.textContent = initials;
+  }
+});
+document.getElementById('btn-logout').addEventListener('click', function(){
+  sbAuth.auth.signOut().then(function(){
+    window.location.href='login.html';
+  });
+});
 </script>
 </body>
 </html>
