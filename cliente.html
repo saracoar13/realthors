@@ -432,7 +432,8 @@ sbAuth.auth.getSession().then(function(res){
   </div>
   <div class="nav-right">
     <span class="badge-cl">Cliente</span>
-    <div class="avatar">MD</div>
+    <div class="avatar" id="user-avatar">?</div>
+<button class="btn-ghost" id="btn-logout" style="font-size:12px">Cerrar sesión</button>
   </div>
 </nav>
 
@@ -1056,6 +1057,20 @@ document.querySelectorAll('.ff').forEach(f=>f.addEventListener('click',function(
 }));
 
 buildCalendar();
+  // Mostrar nombre y cerrar sesión
+sbAuth.auth.getSession().then(function(res){
+  if(res.data.session){
+    var name = res.data.session.user.user_metadata.full_name || res.data.session.user.email;
+    var initials = name.split(' ').map(function(n){return n[0]}).join('').substring(0,2).toUpperCase();
+    var av = document.getElementById('user-avatar');
+    if(av) av.textContent = initials;
+  }
+});
+document.getElementById('btn-logout').addEventListener('click', function(){
+  sbAuth.auth.signOut().then(function(){
+    window.location.href='login.html';
+  });
+});
 </script>
 </body>
 </html>
