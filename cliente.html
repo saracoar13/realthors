@@ -204,6 +204,7 @@ async function saveProfile(){
     needs_society:document.getElementById('pref-society')?document.getElementById('pref-society').checked:false,
     needs_tourist:document.getElementById('pref-tourist')?document.getElementById('pref-tourist').checked:false,
   }).eq('id',currentUser.id);
+if(error){alert('Error: '+error.message);}
   else{
     alert('Perfil guardado.');
     var {data}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
