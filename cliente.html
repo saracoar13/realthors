@@ -205,7 +205,17 @@ async function saveProfile(){
     needs_tourist:document.getElementById('pref-tourist')?document.getElementById('pref-tourist').checked:false,
   }).eq('id',currentUser.id);
   if(error){alert('Error: '+error.message);}
-  else{alert('Perfil guardado.');var {data}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();if(data)userProfile=data;showTab('t-home');loadFeed();}
+  if(error){alert('Error: '+error.message);}
+  else{
+    alert('Perfil guardado.');
+    var {data}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+    if(data){
+      userProfile=data;
+      showTab('t-home');
+      await loadFeed();
+    }
+  }
+}
 }
 
 function updateSidebar(){
