@@ -79,7 +79,7 @@ async function loadFeed(){
   var query=sb.from('properties').select('*').eq('status','activa');
   if(userProfile){
     if(userProfile.search_operation)query=query.eq('operation',userProfile.search_operation);
-    if(userProfile.max_price)query=query.lte('price',userProfile.max_price);
+    if(userProfile.max_price)query=query.lte('price',parseFloat(userProfile.max_price));
     if(userProfile.min_beds)query=query.gte('bedrooms',userProfile.min_beds);
     if(userProfile.needs_non_resident)query=query.eq('non_resident_ok',true);
     if(userProfile.needs_society)query=query.eq('allows_society',true);
