@@ -755,6 +755,21 @@ sbAuth.auth.getSession().then(function(res){
       <div class="doc-ok"><div class="di">🏦</div><div class="dn">Extractos_BNP_Mar2025.pdf</div><div class="ds">✓ Cargado</div></div>
       <div class="doc-box">⬆ Añadir documentos<br><span style="font-size:10px;color:var(--dim)">Declaración de fondos · NIE · Poder notarial</span></div>
       <div class="consent-box"><b>✓ RGPD aceptado</b><br>Acepto el tratamiento de mis datos para el matching y la comunicación con agencias en Realthor.</div>
+      <div class="sep">Qué busco</div>
+<div class="frow2">
+  <div><label>Tipo</label><select class="finp" id="pref-type"><option value="">Cualquiera</option><option>Apartamento</option><option>Casa</option><option>Villa</option><option>Oficina</option><option>Local</option></select></div>
+  <div><label>Operación</label><select class="finp" id="pref-op"><option value="">Cualquiera</option><option>Venta</option><option>Alquiler</option></select></div>
+</div>
+<div class="frow2">
+  <div><label>Precio máximo (€)</label><input class="finp" id="pref-price" placeholder="1000000" type="number"></div>
+  <div><label>Habitaciones mín.</label><input class="finp" id="pref-beds" placeholder="2" type="number"></div>
+</div>
+<div class="frow"><label>Zonas preferidas</label><input class="finp" id="pref-zones" placeholder="Andorra, Barcelona..."></div>
+<div class="frow"><label>Criterios legales</label>
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px">
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);cursor:pointer"><input type="checkbox" id="pref-nonresident"> No-residente OK</label>
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);cursor:pointer"><input type="checkbox" id="pref-society"> Admite sociedad</label>
+</div></div>
       <button class="save-btn" onclick="saveProfile()">Guardar perfil</button>
     </div>
     <div class="prof-right">
