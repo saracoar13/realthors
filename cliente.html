@@ -1079,7 +1079,20 @@ sbAuth.auth.getSession().then(async function(res){
   if(!res.data.session) return;
   var fc=document.getElementById('feed-cards');
   if(!fc) return;
-  var {data,error}=await sbAuth.from('properties').select('*').eq('status','activa').order('created_at',{ascending:false});
+  var profile=null;
+var userId=res.data.session.user.id;
+var profRes=await sbAuth.from('profiles').select('*').eq('id',userId).single();
+if(profRes.data) profile=profRes.data;
+
+var query=sbAuth.from('properties').select('*').eq('status','activa');
+if(profile){
+  if(profile.search_operation) query=query.eq('operation',profile.search_operation);
+  if(profile.max_price) query=query.lte('price',profile.max_price);
+  if(profile.min_beds) query=query.gte('bedrooms',profile.min_beds);
+  if(profile.needs_non_resident) query=query.eq('non_resident_ok',true);
+  if(profile.needs_society) query=query.eq('allows_society',true);
+}
+var {data,error}=await query.order('created_at',{ascending:false});
   if(error||!data||data.length===0){
     fc.innerHTML='<div style="padding:40px;text-align:center;color:var(--dim);font-size:12px"><div style="font-size:32px;margin-bottom:10px;opacity:.3">🏠</div><p>No hay propiedades disponibles aún.</p></div>';
     return;
