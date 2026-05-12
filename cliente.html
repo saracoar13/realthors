@@ -755,7 +755,7 @@ sbAuth.auth.getSession().then(function(res){
       <div class="doc-ok"><div class="di">🏦</div><div class="dn">Extractos_BNP_Mar2025.pdf</div><div class="ds">✓ Cargado</div></div>
       <div class="doc-box">⬆ Añadir documentos<br><span style="font-size:10px;color:var(--dim)">Declaración de fondos · NIE · Poder notarial</span></div>
       <div class="consent-box"><b>✓ RGPD aceptado</b><br>Acepto el tratamiento de mis datos para el matching y la comunicación con agencias en Realthor.</div>
-      <button class="save-btn">Guardar y actualizar Keys</button>
+      <button class="save-btn" onclick="saveProfile()">Guardar perfil</button>
     </div>
     <div class="prof-right">
       <div class="keys-overview">
@@ -1098,6 +1098,22 @@ sbAuth.auth.getSession().then(async function(res){
     fc.appendChild(el);
   });
 });
+  async function saveProfile(){
+  var session=await sbAuth.auth.getSession();
+  if(!session.data.session) return;
+  var userId=session.data.session.user.id;
+  var {error}=await sbAuth.from('profiles').update({
+    search_type:document.getElementById('pref-type')?document.getElementById('pref-type').value:null,
+    search_operation:document.getElementById('pref-op')?document.getElementById('pref-op').value:null,
+    max_price:document.getElementById('pref-price')?parseFloat(document.getElementById('pref-price').value)||null:null,
+    min_beds:document.getElementById('pref-beds')?parseInt(document.getElementById('pref-beds').value)||null:null,
+    preferred_zones:document.getElementById('pref-zones')?document.getElementById('pref-zones').value:null,
+    needs_non_resident:document.getElementById('pref-nonresident')?document.getElementById('pref-nonresident').checked:false,
+    needs_society:document.getElementById('pref-society')?document.getElementById('pref-society').checked:false,
+  }).eq('id',userId);
+  if(error){alert('Error: '+error.message);}
+  else{alert('Perfil guardado. Tu feed se actualizará con las propiedades que encajan.');}
+}
 </script>
 </body>
 </html>
