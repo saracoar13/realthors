@@ -563,7 +563,7 @@ sbAuth.auth.getSession().then(function(res){
         <div class="ff">Alquiler</div>
         <div class="ff">Venta</div>
       </div>
-      <div id="feed-cards"></div>
+      <div id="feed-cards"><div style="padding:20px;text-align:center;color:var(--dim);font-size:12px">Cargando propiedades...</div></div>
     </div>
 
     <div class="home-right">
@@ -1072,6 +1072,30 @@ if(un) un.textContent = name.split(' ')[0];
 document.getElementById('btn-logout').addEventListener('click', function(){
   sbAuth.auth.signOut().then(function(){
     window.location.href='login.html';
+  });
+});
+  // Cargar propiedades reales de Supabase
+sbAuth.auth.getSession().then(async function(res){
+  if(!res.data.session) return;
+  var fc=document.getElementById('feed-cards');
+  if(!fc) return;
+  var {data,error}=await sbAuth.from('properties').select('*').eq('status','activa').order('created_at',{ascending:false});
+  if(error||!data||data.length===0){
+    fc.innerHTML='<div style="padding:40px;text-align:center;color:var(--dim);font-size:12px"><div style="font-size:32px;margin-bottom:10px;opacity:.3">🏠</div><p>No hay propiedades disponibles aún.</p></div>';
+    return;
+  }
+  fc.innerHTML='';
+  data.forEach(function(p){
+    var emoji=p.type==='Villa'?'🏰':p.type==='Casa'?'🏡':p.type==='Oficina'?'🏢':p.type==='Local'?'🏪':p.type==='Solar'?'🌳':'🏠';
+    var tags='';
+    if(p.non_resident_ok) tags+='<span class="tag cl">No-residente OK</span>';
+    if(p.allows_society) tags+='<span class="tag cl">Sociedad</span>';
+    if(p.has_terrace) tags+='<span class="tag dim">Terraza</span>';
+    if(p.has_parking) tags+='<span class="tag dim">Parking</span>';
+    var el=document.createElement('div');
+    el.className='feed-card';
+    el.innerHTML='<div class="fc-img" style="background:linear-gradient(135deg,#06080f,#040404);height:140px;display:flex;align-items:center;justify-content:center;font-size:52px;border-radius:10px 10px 0 0;position:relative"><span>'+emoji+'</span>'+(p.is_offmarket?'<span style="position:absolute;top:8px;left:8px;background:var(--ag-bg);color:var(--ag);border:1px solid var(--ag-bd);border-radius:5px;padding:2px 8px;font-size:9px;font-weight:700">Off-Market</span>':'')+'</div><div class="fc-body" style="padding:14px"><div style="font-family:\'Cormorant Garamond\',serif;font-size:20px;font-weight:500;margin-bottom:4px">'+Number(p.price).toLocaleString('es')+'€</div><div style="font-size:11px;color:var(--sub);margin-bottom:8px">'+p.location+(p.surface?' · '+p.surface+'m²':'')+(p.bedrooms?' · '+p.bedrooms+' hab.':'')+'</div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">'+tags+'</div>'+(p.description?'<div style="font-size:11px;color:var(--sub);line-height:1.6;margin-bottom:10px">'+p.description.substring(0,100)+(p.description.length>100?'...':'')+'</div>':'')+'<div style="display:flex;gap:6px;padding-top:10px;border-top:1px solid var(--border)"><button style="flex:1;padding:7px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:\'Inter\',sans-serif;border:1px solid var(--border2);background:transparent;color:var(--sub)">Guardar</button><button style="flex:1;padding:7px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:\'Inter\',sans-serif;background:var(--cl);color:#fff;border:none">Solicitar Key</button></div></div>';
+    fc.appendChild(el);
   });
 });
 </script>
