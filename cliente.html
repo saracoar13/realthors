@@ -193,10 +193,78 @@ async function loadKeys(){
 function openKeyDetail(k,p){
   var kd=document.getElementById('key-detail');if(!kd)return;
   var stClass=k.status==='unlocked'?'u':k.status==='waiting'?'w':'l';
-  var stLabel=k.status==='unlocked'?'🔓 Unlocked — Conversación activa':k.status==='waiting'?'⏳ Waiting — Revisando tu dossier':'🔒 Locked — Key rechazada';
-  kd.innerHTML='<div class="kd-header '+stClass+'">'+stLabel+'</div><div style="padding:16px"><div style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500;margin-bottom:4px">'+(p.title||'Propiedad')+'</div><div style="font-size:12px;color:var(--sub);margin-bottom:16px">'+(p.location||'')+'</div>'+(k.status==='unlocked'?'<div class="kd-placeholder"><div style="font-size:28px;margin-bottom:8px">💬</div><p>Chat disponible próximamente</p></div>':k.status==='waiting'?'<div class="kd-placeholder"><div style="font-size:28px;margin-bottom:8px">⏳</div><p>Dossier en revisión</p></div>':'<div class="kd-placeholder"><div style="font-size:28px;margin-bottom:8px">🔒</div><p>Key rechazada</p></div>')+'</div>';
+
+  if(k.status==='unlocked'){
+    var msgs=k.messages||[];
+    var msgsHtml=msgs.length?msgs.map(function(m){
+      return '<div class="chat-msg '+(m.from==='cliente'?'sent':'recv')+'">'
+        +'<div class="chat-bubble">'+m.text+'</div>'
+        +'<div class="chat-time">'+m.time+'</div></div>';
+    }).join(''):'<div style="text-align:center;padding:20px;color:var(--dim);font-size:11px">Conversación iniciada. Escribe tu primer mensaje.</div>';
+
+    kd.innerHTML='<div class="kd-header u">🔓 Unlocked — Conversación activa</div>'
+      +'<div class="key-prop-mini"><div style="font-size:18px">'+propEmoji(p.type)+'</div>'
+      +'<div><div style="font-size:12px;font-weight:600">'+(p.title||'Propiedad')+'</div>'
+      +'<div style="font-size:11px;color:var(--sub)">'+(p.location||'')+(p.price?' · '+Number(p.price).toLocaleString('es')+'€':'')+'</div></div></div>'
+      +'<div class="key-actions">'
+      +'<button class="key-action-btn" onclick="postulateKey(\''+k.id+'\')">📋 Postular directamente</button>'
+      +'<button class="key-action-btn" onclick="requestVisit(\''+k.id+'\')">📅 Pedir visita</button>'
+      +'</div>'
+      +'<div class="chat-msgs" id="chat-msgs-'+k.id+'">'+msgsHtml+'</div>'
+      +'<div class="chat-input-wrap">'
+      +'<textarea class="chat-input" id="chat-inp-'+k.id+'" placeholder="Escribe un mensaje..."></textarea>'
+      +'<button class="chat-send-btn" onclick="sendMessage(\''+k.id+'\')">↑</button>'
+      +'</div>';
+
+    var msgs_el=document.getElementById('chat-msgs-'+k.id);
+    if(msgs_el)msgs_el.scrollTop=msgs_el.scrollHeight;
+
+  } else if(k.status==='waiting'){
+    kd.innerHTML='<div class="kd-header w">⏳ Waiting — La agencia está revisando tu dossier</div>'
+      +'<div style="padding:24px;text-align:center">'
+      +'<div style="font-size:36px;margin-bottom:12px">⏳</div>'
+      +'<div style="font-family:Cormorant Garamond,serif;font-size:16px;font-weight:500;margin-bottom:8px">'+(p.title||'Propiedad')+'</div>'
+      +'<div style="font-size:11px;color:var(--sub);margin-bottom:16px">La agencia está revisando tu perfil y documentación.</div>'
+      +'<div style="font-size:11px;color:var(--dim)">Te notificaremos cuando la Key sea aceptada o rechazada.</div>'
+      +'</div>';
+
+  } else {
+    kd.innerHTML='<div class="kd-header l">🔒 Locked — Key denegada</div>'
+      +'<div style="padding:24px;text-align:center">'
+      +'<div style="font-size:36px;margin-bottom:12px">🔒</div>'
+      +'<div style="font-family:Cormorant Garamond,serif;font-size:16px;font-weight:500;margin-bottom:8px">'+(p.title||'Propiedad')+'</div>'
+      +(k.lock_reason?'<div style="background:var(--red-bg);border:1px solid var(--red-bd);border-radius:8px;padding:12px;font-size:12px;color:var(--red);margin-bottom:12px"><b>Motivo:</b> '+k.lock_reason+'</div>':'<div style="font-size:11px;color:var(--sub);margin-bottom:12px">La agencia ha denegado el acceso a esta propiedad.</div>')
+      +'</div>';
+  }
 }
 
+async function sendMessage(keyId){
+  var inp=document.getElementById('chat-inp-'+keyId);
+  if(!inp||!inp.value.trim())return;
+  var text=inp.value.trim();
+  var now=new Date();
+  var time=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  var newMsg={from:'cliente',text:text,time:time};
+  var res=await sb.from('keys').select('messages').eq('id',keyId).single();
+  var msgs=res.data&&res.data.messages?res.data.messages:[];
+  msgs.push(newMsg);
+  await sb.from('keys').update({messages:msgs}).eq('id',keyId);
+  inp.value='';
+  var container=document.getElementById('chat-msgs-'+keyId);
+  if(container){
+    var el=document.createElement('div');el.className='chat-msg sent';
+    el.innerHTML='<div class="chat-bubble">'+text+'</div><div class="chat-time">'+time+'</div>';
+    container.appendChild(el);container.scrollTop=container.scrollHeight;
+  }
+}
+
+function postulateKey(keyId){
+  alert('Función próximamente: Postulación directa enviada a la agencia.');
+}
+
+function requestVisit(keyId){
+  alert('Función próximamente: Solicitud de visita enviada a la agencia.');
+}
 function populateProfile(data){
   var map={'prof-name':data.full_name,'prof-phone':data.phone,'prof-country':data.country,'pref-op':data.search_operation,'pref-price':data.max_price,'pref-beds':data.min_beds,'pref-zones':data.preferred_zones};
   Object.keys(map).forEach(function(id){var el=document.getElementById(id);if(el&&map[id]!=null)el.value=map[id];});
