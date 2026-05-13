@@ -56,6 +56,9 @@ function propCard(p){
   if(p.has_terrace)tags+='<span class="tag dim">Terraza</span>';
   if(p.has_parking)tags+='<span class="tag dim">Parking</span>';
   if(p.has_pool)tags+='<span class="tag dim">Piscina</span>';
+  if(p.has_balcony)tags+='<span class="tag dim">Balcón</span>';
+  if(p.has_storage)tags+='<span class="tag dim">Trastero</span>';
+  if(p.furnished)tags+='<span class="tag dim">Amueblado</span>';
   if(p.pets_allowed)tags+='<span class="tag dim">Mascotas</span>';
   var details='';
   if(p.surface)details+=p.surface+'m²';
@@ -122,10 +125,14 @@ async function applyFilters(){
   var loc=document.getElementById('f-loc').value.toLowerCase();
   var nonRes=document.getElementById('f-nonresident').checked;
   var society=document.getElementById('f-society').checked;
+  var commerce=document.getElementById('f-commerce').checked;
   var tourist=document.getElementById('f-tourist').checked;
   var terrace=document.getElementById('f-terrace').checked;
   var parking=document.getElementById('f-parking').checked;
   var pool=document.getElementById('f-pool').checked;
+  var balcony=document.getElementById('f-balcony').checked;
+  var storage=document.getElementById('f-storage').checked;
+  var furnished=document.getElementById('f-furnished').checked;
   var pets=document.getElementById('f-pets').checked;
   var gc=document.getElementById('search-results');
   gc.innerHTML='<div class="loading">Filtrando...</div>';
@@ -145,12 +152,16 @@ async function applyFilters(){
   var result=await query.order('created_at',{ascending:false});
   var filtered=result.data||[];
   if(loc)filtered=filtered.filter(function(p){return p.location&&p.location.toLowerCase().includes(loc);});
+  if(balcony)filtered=filtered.filter(function(p){return p.has_balcony;});
+  if(storage)filtered=filtered.filter(function(p){return p.has_storage;});
+  if(furnished)filtered=filtered.filter(function(p){return p.furnished;});
+  if(commerce)filtered=filtered.filter(function(p){return p.allows_commerce;});
   renderSearchResults(filtered);
 }
 
 function resetFilters(){
   ['f-op','f-type','f-min-price','f-max-price','f-beds','f-loc'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
-  ['f-nonresident','f-society','f-tourist','f-terrace','f-parking','f-pool','f-pets'].forEach(function(id){var el=document.getElementById(id);if(el)el.checked=false;});
+  ['f-nonresident','f-society','f-commerce','f-tourist','f-terrace','f-parking','f-pool','f-balcony','f-storage','f-furnished','f-pets'].forEach(function(id){var el=document.getElementById(id);if(el)el.checked=false;});
   loadSearch();
 }
 
@@ -406,14 +417,18 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
       <div class="check-grid">
         <label class="check-item"><input type="checkbox" id="f-nonresident"> No-residente OK</label>
         <label class="check-item"><input type="checkbox" id="f-society"> Admite sociedad</label>
+        <label class="check-item"><input type="checkbox" id="f-commerce"> Admite comercio</label>
         <label class="check-item"><input type="checkbox" id="f-tourist"> Uso turístico</label>
         <label class="check-item"><input type="checkbox" id="f-pets"> Acepta animales</label>
       </div>
       <span class="sep">Características</span>
       <div class="check-grid">
         <label class="check-item"><input type="checkbox" id="f-terrace"> Terraza</label>
+        <label class="check-item"><input type="checkbox" id="f-balcony"> Balcón</label>
         <label class="check-item"><input type="checkbox" id="f-parking"> Parking</label>
+        <label class="check-item"><input type="checkbox" id="f-storage"> Trastero</label>
         <label class="check-item"><input type="checkbox" id="f-pool"> Piscina</label>
+        <label class="check-item"><input type="checkbox" id="f-furnished"> Amueblado</label>
       </div>
       <div style="margin-top:16px">
         <button class="filter-btn" onclick="applyFilters()">Aplicar filtros</button>
@@ -472,6 +487,9 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
       <span class="sep">Documentación</span>
       <div class="doc-ok"><div class="di">🪪</div><div class="dn">Pasaporte / DNI</div><div class="ds">Pendiente</div></div>
       <div class="doc-ok"><div class="di">🏦</div><div class="dn">Extractos bancarios</div><div class="ds">Pendiente</div></div>
+      <div class="doc-ok"><div class="di">🏠</div><div class="dn">Puntos CAAS</div><div class="ds">Pendiente</div></div>
+      <div class="doc-ok"><div class="di">🏦</div><div class="dn">Cuenta bancaria verificada</div><div class="ds">Pendiente</div></div>
+      <div class="doc-ok"><div class="di">🏢</div><div class="dn">NRT Sociedad</div><div class="ds">Pendiente</div></div>
       <div class="doc-box">⬆ Subir documentos</div>
       <button class="save-btn" onclick="saveProfile()">Guardar perfil y actualizar feed</button>
     </div>
