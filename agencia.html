@@ -3,14 +3,259 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>REALTHOR · Agencia</title>
+<title>REALTHORS · Agencia</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SURL='https://zftxrycmzvsebuqwhyis.supabase.co';
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmdHhyeWNtenZzZWJ1cXdoeWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNDUzNDEsImV4cCI6MjA5MzgyMTM0MX0.OSh4bP5Ypi0Wsv-d5c2fi-bphnhhmLJoU-yN5cc1AGA';
+const sb=supabase.createClient(SURL,SKEY);
+let currentUser=null;
+let agencyProfile=null;
+
+sb.auth.getSession().then(async function(res){
+  if(!res.data.session){window.location.href='login.html';return;}
+  currentUser=res.data.session.user;
+  var name=currentUser.user_metadata.full_name||currentUser.email;
+  var initials=name.split(' ').map(function(n){return n[0]}).join('').substring(0,2).toUpperCase();
+  var av=document.getElementById('user-avatar');if(av)av.textContent=initials;
+  var un=document.getElementById('user-name');if(un)un.textContent=name.split(' ')[0];
+  var res2=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+  if(res2.data)agencyProfile=res2.data;
+  loadDashboard();
+  loadProperties();
+});
+
+document.addEventListener('DOMContentLoaded',function(){
+  var btn=document.getElementById('btn-logout');
+  if(btn)btn.addEventListener('click',function(){sb.auth.signOut().then(function(){window.location.href='login.html';});});
+});
+
+function showTab(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});
+  document.querySelectorAll('.ntab').forEach(function(t){t.classList.remove('active')});
+  var el=document.getElementById(id);if(el)el.classList.add('active');
+  var tabs=['t-dashboard','t-properties','t-keys','t-profile'];
+  var idx=tabs.indexOf(id);
+  var ntabs=document.querySelectorAll('.ntab');
+  if(idx>=0&&ntabs[idx])ntabs[idx].classList.add('active');
+  if(id==='t-properties')loadProperties();
+  if(id==='t-keys')loadKeys();
+}
+
+function propEmoji(type){
+  return type==='Casa'?'🏡':type==='Oficina'?'🏢':type==='Local'?'🏪':type==='Parking'?'🅿️':type==='Solar'?'🌳':'🏠';
+}
+
+function openModal(id){var el=document.getElementById(id);if(el)el.style.display='flex';}
+function closeModal(id){var el=document.getElementById(id);if(el)el.style.display='none';}
+
+async function loadDashboard(){
+  if(!currentUser)return;
+  var res=await sb.from('properties').select('id,status').eq('owner_id',currentUser.id);
+  var props=res.data||[];
+  var active=props.filter(function(p){return p.status==='activa'}).length;
+  var el=document.getElementById('dash-props');if(el)el.textContent=active;
+  var el5=document.getElementById('ag-stat-props');if(el5)el5.textContent=active;
+  var res2=await sb.from('keys').select('id,status').eq('owner_id',currentUser.id);
+  var keys=res2.data||[];
+  var waiting=keys.filter(function(k){return k.status==='waiting'}).length;
+  var unlocked=keys.filter(function(k){return k.status==='unlocked'}).length;
+  var el2=document.getElementById('dash-keys');if(el2)el2.textContent=keys.length;
+  var el3=document.getElementById('dash-waiting');if(el3)el3.textContent=waiting;
+  var el4=document.getElementById('dash-unlocked');if(el4)el4.textContent=unlocked;
+  var el6=document.getElementById('ag-stat-keys');if(el6)el6.textContent=keys.length;
+  var el7=document.getElementById('ag-stat-waiting');if(el7)el7.textContent=waiting;
+  var el8=document.getElementById('ag-stat-unlocked');if(el8)el8.textContent=unlocked;
+}
+
+async function loadProperties(){
+  var pl=document.getElementById('prop-list');
+  var pd=document.getElementById('prop-detail');
+  if(!pl||!currentUser)return;
+  pl.innerHTML='<div class="loading">Cargando propiedades...</div>';
+  var res=await sb.from('properties').select('*').eq('owner_id',currentUser.id).order('created_at',{ascending:false});
+  var data=res.data||[];
+  if(data.length===0){
+    pl.innerHTML='<div class="empty-state"><div style="font-size:32px;margin-bottom:10px">🏠</div><p>No tienes propiedades publicadas aún.</p><p style="font-size:11px;margin-top:6px">Haz clic en <b style="color:var(--ag)">+ Publicar bien</b> para añadir la primera.</p></div>';
+    if(pd)pd.innerHTML='<div class="empty-state" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:32px;opacity:.3">🏠</div><p style="margin-top:8px">Sin propiedades aún</p></div>';
+    return;
+  }
+  pl.innerHTML='';
+  data.forEach(function(p,i){
+    var emoji=propEmoji(p.type);
+    var el=document.createElement('div');
+    el.className='prop-item'+(i===0?' active':'');
+    el.innerHTML='<div class="prop-thumb">'+emoji+'</div>'
+      +'<div class="prop-info">'
+      +'<div class="prop-name">'+p.title+'</div>'
+      +'<div class="prop-sub">'+p.operation+' · '+p.location+'</div>'
+      +'<div class="prop-tags"><span class="tag dim">'+p.type+'</span><span class="tag '+(p.status==='activa'?'inv':'red')+'">'+p.status+'</span></div>'
+      +'</div>'
+      +'<div class="prop-right">'
+      +'<div class="prop-price">'+Number(p.price).toLocaleString('es')+'€</div>'
+      +(p.surface?'<div class="prop-views">'+p.surface+'m²</div>':'')
+      +'</div>';
+    el.onclick=function(){
+      document.querySelectorAll('.prop-item').forEach(function(x){x.classList.remove('active')});
+      el.classList.add('active');
+      showPropDetail(p,emoji);
+    };
+    pl.appendChild(el);
+    if(i===0)showPropDetail(p,emoji);
+  });
+}
+
+function showPropDetail(p,emoji){
+  var d=document.getElementById('prop-detail');if(!d)return;
+  var tags='';
+  if(p.non_resident_ok)tags+='<span class="tag cl">No-residente OK</span> ';
+  if(p.allows_society)tags+='<span class="tag cl">Sociedad</span> ';
+  if(p.tourist_use)tags+='<span class="tag cl">Turístico</span> ';
+  if(p.has_terrace)tags+='<span class="tag dim">Terraza</span> ';
+  if(p.has_parking)tags+='<span class="tag dim">Parking</span> ';
+  if(p.has_pool)tags+='<span class="tag dim">Piscina</span> ';
+  if(p.furnished)tags+='<span class="tag dim">Amueblado</span> ';
+  d.innerHTML='<div class="det-head">Ficha de propiedad</div>'
+    +'<div class="det-img">'+emoji+'</div>'
+    +'<div class="det-title">'+p.title+'</div>'
+    +'<div class="det-ref">'+p.type+' · '+p.operation+'</div>'
+    +'<div class="det-sect">Detalles</div>'
+    +'<div class="det-row"><span>Precio</span><span>'+Number(p.price).toLocaleString('es')+'€</span></div>'
+    +'<div class="det-row"><span>Ubicación</span><span>'+p.location+'</span></div>'
+    +(p.surface?'<div class="det-row"><span>Superficie</span><span>'+p.surface+'m²</span></div>':'')
+    +(p.bedrooms?'<div class="det-row"><span>Habitaciones</span><span>'+p.bedrooms+'</span></div>':'')
+    +(p.bathrooms?'<div class="det-row"><span>Baños</span><span>'+p.bathrooms+'</span></div>':'')
+    +'<div class="det-row"><span>Estado</span><span>'+p.status+'</span></div>'
+    +(tags?'<div class="det-sect">Características</div><div style="display:flex;flex-wrap:wrap;gap:4px;padding:6px 0">'+tags+'</div>':'')
+    +(p.description?'<div class="det-sect">Descripción</div><div style="font-size:11px;color:var(--sub);line-height:1.7;padding:6px 0">'+p.description+'</div>':'')
+    +'<div class="det-sect">Acciones</div>'
+    +'<div class="det-actions">'
+    +'<button class="da-btn" onclick="toggleStatus(\''+p.id+'\',\''+p.status+'\')">'+( p.status==='activa'?'Desactivar':'Activar')+'</button>'
+    +'</div>';
+}
+
+async function toggleStatus(id,currentStatus){
+  var newStatus=currentStatus==='activa'?'inactiva':'activa';
+  await sb.from('properties').update({status:newStatus}).eq('id',id);
+  loadProperties();
+}
+
+async function publishProperty(){
+  var title=document.getElementById('pub-title').value.trim();
+  var price=document.getElementById('pub-price').value;
+  var type=document.getElementById('pub-type').value;
+  var op=document.getElementById('pub-op').value;
+  var sqm=document.getElementById('pub-sqm').value;
+  var beds=document.getElementById('pub-beds').value;
+  var baths=document.getElementById('pub-baths').value;
+  var location=document.getElementById('pub-location').value;
+  var desc=document.getElementById('pub-desc').value.trim();
+  var err=document.getElementById('pub-error');
+  var suc=document.getElementById('pub-success');
+  err.className='msg error';suc.className='msg success';
+  if(!title||!price||!location){err.textContent='Rellena título, precio y ubicación.';err.className='msg error show';return;}
+  var session=await sb.auth.getSession();
+  if(!session.data.session){window.location.href='login.html';return;}
+  var userId=session.data.session.user.id;
+  var insert={
+    title:title,price:parseFloat(price),type:type,operation:op,
+    surface:sqm?parseFloat(sqm):null,
+    bedrooms:beds?parseInt(beds):null,
+    bathrooms:baths?parseInt(baths):null,
+    location:location,country:'Andorra',
+    description:desc,owner_id:userId,status:'activa',visibility:'todos',
+    has_terrace:document.getElementById('pub-terrace').checked,
+    has_parking:document.getElementById('pub-parking').checked,
+    has_pool:document.getElementById('pub-pool').checked,
+    has_elevator:document.getElementById('pub-elevator').checked,
+    has_storage:document.getElementById('pub-storage').checked,
+    furnished:document.getElementById('pub-furnished').checked,
+    pets_allowed:document.getElementById('pub-pets').checked,
+    non_resident_ok:document.getElementById('pub-nonresident').checked,
+    allows_society:document.getElementById('pub-society').checked,
+    tourist_use:document.getElementById('pub-tourist').checked,
+    year_built:document.getElementById('pub-year').value?parseInt(document.getElementById('pub-year').value):null,
+    energy_cert:document.getElementById('pub-energy').value||null
+  };
+  var {error}=await sb.from('properties').insert(insert);
+  if(error){err.textContent='Error: '+error.message;err.className='msg error show';}
+  else{
+    suc.textContent='Propiedad publicada correctamente.';suc.className='msg success show';
+    setTimeout(function(){closeModal('modal-publish');loadProperties();showTab('t-properties');},1500);
+  }
+}
+
+async function loadKeys(){
+  var kl=document.getElementById('keys-list');
+  var kd=document.getElementById('key-detail');
+  if(!kl||!currentUser)return;
+  kl.innerHTML='<div class="loading">Cargando Keys...</div>';
+  var res=await sb.from('keys').select('*, properties(title,location,price,type), profiles!keys_requester_id_fkey(full_name,country,phone)').eq('owner_id',currentUser.id).order('created_at',{ascending:false});
+  var data=res.data||[];
+  if(data.length===0){
+    kl.innerHTML='<div class="empty-state">No tienes Keys recibidas aún.</div>';
+    return;
+  }
+  kl.innerHTML='';
+  data.forEach(function(k){
+    var p=k.properties||{};
+    var client=k.profiles||{};
+    var stClass=k.status==='unlocked'?'u':k.status==='waiting'?'w':'l';
+    var stLabel=k.status==='unlocked'?'🔓 Unlocked':k.status==='waiting'?'⏳ Waiting':'🔒 Locked';
+    var name=client.full_name||'Cliente';
+    var initials=name.split(' ').map(function(n){return n[0]}).join('').substring(0,2).toUpperCase();
+    var el=document.createElement('div');el.className='key-item';
+    el.innerHTML='<div class="ki-av">'+initials+'</div>'
+      +'<div class="ki-info">'
+      +'<div class="ki-name">'+name+'</div>'
+      +'<div class="ki-prop">'+(p.title||'Propiedad')+'</div>'
+      +'<div class="ki-sub">'+(client.country||'')+'</div>'
+      +'</div>'
+      +'<span class="ki-status '+stClass+'">'+stLabel+'</span>';
+    el.onclick=function(){
+      document.querySelectorAll('.key-item').forEach(function(x){x.classList.remove('active')});
+      el.classList.add('active');
+      openKeyDetail(k,p,client);
+    };
+    kl.appendChild(el);
+  });
+  if(kd)kd.innerHTML='<div class="kd-placeholder" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:36px;margin-bottom:12px">🗝️</div><p>Selecciona una Key para gestionarla</p></div>';
+}
+
+function openKeyDetail(k,p,client){
+  var kd=document.getElementById('key-detail');if(!kd)return;
+  var stClass=k.status==='unlocked'?'u':k.status==='waiting'?'w':'l';
+  var stLabel=k.status==='unlocked'?'🔓 Unlocked — Conversación activa':k.status==='waiting'?'⏳ Waiting — Revisando dossier':'🔒 Locked';
+  var name=client.full_name||'Cliente';
+  kd.innerHTML='<div class="kd-header '+stClass+'">'+stLabel+'</div>'
+    +'<div style="padding:16px">'
+    +'<div style="font-size:14px;font-weight:600;margin-bottom:2px">'+name+'</div>'
+    +'<div style="font-size:11px;color:var(--sub);margin-bottom:12px">'+(client.country||'')+' · '+(client.phone||'')+'</div>'
+    +'<div style="font-family:Cormorant Garamond,serif;font-size:16px;font-weight:500;margin-bottom:4px">'+(p.title||'Propiedad')+'</div>'
+    +'<div style="font-size:11px;color:var(--sub);margin-bottom:16px">'+(p.location||'')+(p.price?' · '+Number(p.price).toLocaleString('es')+'€':'')+'</div>'
+    +(k.status==='waiting'?
+      '<div style="display:flex;gap:8px;margin-bottom:16px">'
+      +'<button class="da-btn primary" onclick="updateKeyStatus(\''+k.id+'\',\'unlocked\')">✅ Aceptar Key</button>'
+      +'<button class="da-btn" style="color:var(--red);border-color:var(--red-bd)" onclick="updateKeyStatus(\''+k.id+'\',\'locked\')">🔒 Rechazar</button>'
+      +'</div>':''
+    )
+    +(k.status==='unlocked'?'<div class="kd-placeholder"><div style="font-size:28px;margin-bottom:8px">💬</div><p>Chat disponible próximamente</p></div>':'')
+    +'</div>';
+}
+
+async function updateKeyStatus(keyId,newStatus){
+  var {error}=await sb.from('keys').update({status:newStatus}).eq('id',keyId);
+  if(error){alert('Error: '+error.message);}
+  else{loadKeys();loadDashboard();}
+}
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0E0E10;--s1:#161618;--s2:#1E1E21;--s3:#26262A;
+  --bg:#0C0C0E;--s1:#141416;--s2:#1C1C1F;--s3:#242428;
   --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
-  --text:#E8E6E0;--sub:#9A9890;--dim:#5A5856;
+  --text:#ECEAE4;--sub:#8A8880;--dim:#525050;
   --cl:#6B8FBF;--cl-bg:rgba(107,143,191,0.09);--cl-bd:rgba(107,143,191,0.22);
   --ag:#B8934A;--ag-bg:rgba(184,147,74,0.09);--ag-bd:rgba(184,147,74,0.22);
   --inv:#5A9E7C;--inv-bg:rgba(90,158,124,0.09);--inv-bd:rgba(90,158,124,0.22);
@@ -19,1120 +264,321 @@
 html,body{height:100%;overflow:hidden}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:4px}
-
-/* ── NAV ── */
-nav{height:54px;padding:0 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(14,14,16,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:300}
-.logo{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;background:rgba(12,12,14,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:300}
+.logo{display:flex;align-items:center;gap:8px;cursor:pointer}
 .logo-word{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;letter-spacing:0.18em;text-transform:uppercase;color:var(--text)}
 .nav-tabs{display:flex;gap:2px}
-.ntab{padding:6px 13px;border-radius:6px;border:none;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s;position:relative;white-space:nowrap}
+.ntab{padding:6px 14px;border-radius:6px;border:none;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s}
 .ntab:hover{color:var(--text)}
 .ntab.active{background:var(--s2);color:var(--text);border:1px solid var(--border2)}
-.ntab-dot{position:absolute;top:5px;right:7px;width:5px;height:5px;border-radius:50%;background:var(--ag)}
-.nav-right{display:flex;align-items:center;gap:10px}
-.badge-ag{padding:4px 10px;border-radius:5px;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:var(--ag-bg);color:var(--ag);border:1px solid var(--ag-bd)}
-.avatar{width:30px;height:30px;border-radius:50%;background:var(--ag-bg);border:1px solid var(--ag-bd);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--ag);cursor:pointer}
-.btn-primary{padding:7px 16px;background:var(--ag);color:#0e0e10;border:none;border-radius:7px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:filter .18s;white-space:nowrap}
-.btn-primary:hover{filter:brightness(1.08)}
-.btn-ghost{padding:6px 13px;background:transparent;color:var(--sub);border:1px solid var(--border2);border-radius:7px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s}
-.btn-ghost:hover{color:var(--text)}
-
-/* ── SCREENS ── */
+.nav-right{display:flex;align-items:center;gap:8px}
+.badge-ag{padding:3px 9px;border-radius:5px;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:var(--ag-bg);color:var(--ag);border:1px solid var(--ag-bd)}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--ag-bg);border:1px solid var(--ag-bd);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--ag)}
+.btn-publish{padding:6px 14px;background:var(--ag);color:#0c0c0e;border:none;border-radius:7px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:filter .18s}
+.btn-publish:hover{filter:brightness(1.08)}
+.btn-logout{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;background:transparent;color:var(--sub);border:1px solid var(--border2);cursor:pointer;font-family:'Inter',sans-serif}
+.btn-logout:hover{color:var(--text)}
 .screen{display:none;position:fixed;top:54px;left:0;right:0;bottom:0;overflow:hidden}
 .screen.active{display:block}
-
-/* ── SHARED LAYOUT: sidebar left + main ── */
-.app-layout{display:grid;grid-template-columns:196px 1fr;height:calc(100vh - 54px)}
-.sidebar{background:var(--s1);border-right:1px solid var(--border);height:100%;overflow-y:auto;padding:14px 0;flex-shrink:0}
-.sb-who{padding:0 14px 14px;border-bottom:1px solid var(--border);margin-bottom:8px}
-.sb-who .role{font-size:9px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;margin-bottom:3px}
-.sb-who .name{font-size:13px;font-weight:600}
-.sb-who .plan{font-size:10px;color:var(--ag);margin-top:2px}
-.sb-section{font-size:9px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;padding:11px 14px 4px}
-.sb-item{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:12px;font-weight:500;color:var(--sub);cursor:pointer;transition:all .18s;border-left:2px solid transparent;white-space:nowrap}
-.sb-item:hover,.sb-item.active{color:var(--text);background:var(--s2);border-left-color:var(--ag)}
-.sb-item .si-badge{margin-left:auto;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;background:var(--ag-bg);color:var(--ag)}
-.main-col{overflow-y:auto;height:calc(100vh - 54px);padding:22px 26px}
-
-/* ── SHARED COMPONENTS ── */
-.page-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
-.page-hd h2{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:400}
-.page-hd p{font-size:11px;color:var(--sub);margin-top:3px}
-.page-hd-actions{display:flex;gap:7px;align-items:center}
-
-.krow{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px}
-.kcard{background:var(--s1);border-radius:10px;padding:15px;border:1px solid var(--border)}
-.klbl{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
-.kval{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;line-height:1;margin-bottom:3px}
-.kdelta{font-size:11px}.kdelta.up{color:var(--inv)}.kdelta.dn{color:var(--red)}
-
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:14px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin-bottom:14px}
-.card{background:var(--s1);border-radius:11px;padding:16px;border:1px solid var(--border)}
-.card h4{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between}
-.card h4 span{font-size:11px;color:var(--sub);font-family:'Inter',sans-serif;font-weight:400}
-
-.row-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+#t-dashboard{background:var(--bg)}
+.dashboard-main{overflow-y:auto;height:calc(100vh - 54px);padding:20px 24px;max-width:1000px;margin:0 auto}
+.dash-hd{margin-bottom:20px}
+.dash-hd h2{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:4px}
+.dash-hd p{font-size:11px;color:var(--sub)}
+.krow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.kcard{background:var(--s1);border-radius:10px;padding:14px;border:1px solid var(--border)}
+.klbl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.kval{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;line-height:1;margin-bottom:2px}
+.kdelta{font-size:11px;color:var(--inv)}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px}
+.card h4{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:400;margin-bottom:10px}
+.row-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
 .row-item:last-child{border-bottom:none}
-.ri-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.ri-dot.green{background:var(--inv)}.ri-dot.amber{background:var(--ag)}.ri-dot.red{background:var(--red)}.ri-dot.blue{background:var(--cl)}
-.ri-info{flex:1;min-width:0}
-.ri-info strong{display:block;font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ri-info span{color:var(--sub);font-size:11px}
-.ri-right{font-size:11px;font-weight:600;white-space:nowrap;text-align:right}
-.ri-right.green{color:var(--inv)}.ri-right.amber{color:var(--ag)}.ri-right.red{color:var(--red)}
-
-.tag{font-size:9px;padding:2px 7px;border-radius:8px;font-weight:600}
-.tag.cl{background:var(--cl-bg);color:var(--cl)}
-.tag.ag{background:var(--ag-bg);color:var(--ag)}
-.tag.inv{background:var(--inv-bg);color:var(--inv)}
-.tag.red{background:var(--red-bg);color:var(--red)}
-
-/* AI chat box */
-.ai-box{background:var(--s1);border:1px solid var(--ag-bd);border-radius:11px;padding:16px}
-.ai-box-head{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ag);margin-bottom:12px}
-.cbubble{padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.55;margin-bottom:7px;max-width:90%}
-.cbubble.u{background:var(--s2);border:1px solid var(--border2);margin-left:auto;text-align:right;color:var(--sub)}
-.cbubble.b{background:var(--ag-bg);border:1px solid var(--ag-bd);color:var(--text)}
-.cbubble.b strong{color:var(--ag)}
-.cq{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
-.cqbtn{font-size:10px;padding:4px 9px;border-radius:6px;background:var(--s2);border:1px solid var(--border2);color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s}
-.cqbtn:hover{border-color:var(--ag);color:var(--ag)}
-
-/* ══════════════════════════════════
-   TAB 1 · RESUMEN (Dashboard home)
-══════════════════════════════════ */
-/* ══════════════════════════════════
-   TAB 2 · PROPIEDADES
-══════════════════════════════════ */
-.props-layout{display:grid;grid-template-columns:1fr 340px;gap:0;height:calc(100vh - 54px)}
-.props-main{padding:22px 26px;overflow-y:auto;height:100%}
-.props-detail{background:var(--s1);border-left:1px solid var(--border);padding:22px;overflow-y:auto;height:100%}
-.prop-list-item{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .18s;display:flex;align-items:center;gap:14px}
-.prop-list-item:hover{border-color:var(--border2)}
-.prop-list-item.active{border-color:var(--ag)}
-.pli-img{width:64px;height:56px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
-.pli-info{flex:1;min-width:0}
-.pli-name{font-size:13px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pli-sub{font-size:11px;color:var(--sub);margin-bottom:5px}
-.pli-tags{display:flex;gap:4px;flex-wrap:wrap}
-.pli-right{text-align:right;flex-shrink:0}
-.pli-price{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;margin-bottom:4px}
-.pli-score{font-size:11px;color:var(--ag);font-weight:600}
-.pli-views{font-size:10px;color:var(--sub)}
-
-.det-section{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
-.det-section:last-child{border-bottom:none}
-.det-section h5{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
-.det-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--sub)}
+#t-properties{background:var(--bg)}
+.props-layout{display:grid;grid-template-columns:1fr 320px;height:calc(100vh - 54px)}
+.props-list{padding:18px 20px;overflow-y:auto;height:100%}
+.props-detail{background:var(--s1);border-left:1px solid var(--border);padding:20px;overflow-y:auto;height:100%}
+.props-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.props-hd h2{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400}
+.prop-item{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:border-color .18s;display:flex;align-items:center;gap:12px}
+.prop-item:hover,.prop-item.active{border-color:var(--ag-bd)}
+.prop-thumb{width:48px;height:44px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:linear-gradient(135deg,#06080f,#040404)}
+.prop-info{flex:1;min-width:0}
+.prop-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.prop-sub{font-size:11px;color:var(--sub);margin-bottom:4px}
+.prop-tags{display:flex;gap:4px;flex-wrap:wrap}
+.prop-right{text-align:right;flex-shrink:0}
+.prop-price{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:500;margin-bottom:2px}
+.prop-views{font-size:10px;color:var(--dim)}
+.det-head{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.det-img{width:100%;height:100px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:10px;background:linear-gradient(135deg,#06080f,#040404)}
+.det-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;margin-bottom:2px}
+.det-ref{font-size:11px;color:var(--sub);margin-bottom:10px}
+.det-sect{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:10px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.det-row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);color:var(--sub)}
+.det-row:last-child{border-bottom:none}
 .det-row span:last-child{color:var(--text);font-weight:500}
-.det-bar-item{margin-bottom:8px}
-.det-bar-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-bottom:3px}
-.det-bar-track{height:3px;background:var(--s3);border-radius:2px;overflow:hidden}
-.det-bar-fill{height:100%;background:var(--ag);border-radius:2px}
-
-/* ══════════════════════════════════
-   TAB 3 · AGENDA
-══════════════════════════════════ */
-.agenda-layout{display:grid;grid-template-columns:1fr 300px;gap:0;height:calc(100vh - 54px)}
-.agenda-main{padding:22px 26px;overflow-y:auto;height:100%}
-.agenda-side{background:var(--s1);border-left:1px solid var(--border);padding:20px;overflow-y:auto;height:100%}
-
-.week-nav{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-.week-nav h3{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;flex:1}
-.week-nav-btns{display:flex;gap:5px}
-.wnbtn{background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--sub);cursor:pointer;font-family:'Inter',sans-serif}
-.wnbtn:hover{color:var(--text)}
-
-.week-grid{display:grid;grid-template-columns:60px repeat(5,1fr);gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px}
-.wg-header{background:var(--s2);padding:10px 8px;text-align:center;font-size:11px;font-weight:600;border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
-.wg-header:last-child{border-right:none}
-.wg-header .wd{color:var(--sub);font-size:9px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px}
-.wg-header .wdate{color:var(--text);font-size:14px;font-family:'Cormorant Garamond',serif}
-.wg-time{background:var(--s2);padding:6px 8px;font-size:10px;color:var(--dim);text-align:right;border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
-.wg-cell{padding:4px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);min-height:52px;position:relative}
-.wg-cell:last-child{border-right:none}
-.wg-event{border-radius:6px;padding:5px 7px;font-size:10px;font-weight:500;cursor:pointer;transition:filter .18s;margin-bottom:3px;line-height:1.35}
-.wg-event:hover{filter:brightness(1.08)}
-.wg-event.confirmed{background:var(--inv-bg);border:1px solid var(--inv-bd);color:var(--inv)}
-.wg-event.pending{background:var(--ag-bg);border:1px solid var(--ag-bd);color:var(--ag)}
-.wg-event.cancelled{background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red);text-decoration:line-through;opacity:.6}
-.wg-event .ev-time{font-size:9px;opacity:.8}
-.wg-event .ev-name{font-weight:600}
-
-.visit-card{background:var(--s2);border-radius:9px;padding:13px;margin-bottom:8px;cursor:pointer;border:1px solid var(--border);transition:border-color .18s}
-.visit-card:hover{border-color:var(--border2)}
-.vc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
-.vc-top .vtime{font-size:13px;font-weight:600;color:var(--text)}
-.vc-prop{font-size:12px;font-weight:500;margin-bottom:3px}
-.vc-client{font-size:11px;color:var(--sub);margin-bottom:7px}
-.vc-actions{display:flex;gap:5px}
-.vc-btn{padding:4px 9px;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid var(--border2);background:transparent;color:var(--sub);transition:all .18s}
-.vc-btn:hover{color:var(--text)}
-.vc-btn.confirm{background:var(--inv-bg);color:var(--inv);border-color:var(--inv-bd)}
-.vc-btn.cancel{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
-
-/* ══════════════════════════════════
-   TAB 4 · KEYS (ex Clientes)
-══════════════════════════════════ */
-.keys-layout{display:grid;grid-template-columns:280px 1fr;height:calc(100vh - 54px)}
-.keys-list-col{background:var(--s1);border-right:1px solid var(--border);height:100%;display:flex;flex-direction:column}
-.kl-top{padding:16px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
-.kl-top h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
-.kl-search{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none}
-.kl-search::placeholder{color:var(--dim)}
-.kl-stabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
-.kstab{flex:1;padding:8px 4px;font-size:11px;font-weight:500;text-align:center;cursor:pointer;color:var(--sub);border:none;background:transparent;font-family:'Inter',sans-serif;border-bottom:2px solid transparent;transition:all .18s}
-.kstab:hover{color:var(--text)}
-.kstab.active{color:var(--ag);border-bottom-color:var(--ag)}
-.kstab-count{display:inline-block;border-radius:8px;padding:1px 5px;font-size:9px;font-weight:700;margin-left:3px}
-.kstab-count.ag{background:var(--ag-bg);color:var(--ag)}
-.kstab-count.inv{background:var(--inv-bg);color:var(--inv)}
-.kstab-count.red{background:var(--red-bg);color:var(--red)}
-.kstab-count.dim{background:var(--s3);color:var(--sub)}
-.keys-list{flex:1;overflow-y:auto}
-.key-item{display:flex;gap:9px;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .18s;position:relative;align-items:flex-start}
-.key-item:hover{background:var(--s2)}
-.key-item.active{background:var(--s2);border-left:2px solid var(--ag)}
-.ki-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
-.ki-av.cl{background:var(--cl-bg);color:var(--cl)}
-.ki-av.ag{background:var(--ag-bg);color:var(--ag)}
-.ki-av.inv{background:var(--inv-bg);color:var(--inv)}
+.det-actions{display:flex;flex-direction:column;gap:5px;margin-top:10px}
+.da-btn{padding:8px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;border:1px solid var(--border2);background:transparent;color:var(--sub);text-align:center}
+.da-btn:hover{color:var(--text)}.da-btn.primary{background:var(--ag);color:#0c0c0e;border-color:var(--ag)}
+#t-keys{background:var(--bg)}
+.keys-layout{display:grid;grid-template-columns:320px 1fr;height:calc(100vh - 54px)}
+.keys-col{background:var(--s1);border-right:1px solid var(--border);overflow-y:auto;height:100%}
+.keys-col-hd{padding:14px;border-bottom:1px solid var(--border)}
+.keys-col-hd h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400}
+.key-list{overflow-y:auto}
+.key-item{display:flex;gap:8px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .18s;align-items:center}
+.key-item:hover{background:var(--s2)}.key-item.active{background:var(--s2);border-left:2px solid var(--ag)}
+.ki-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;background:var(--cl-bg);color:var(--cl)}
 .ki-info{flex:1;min-width:0}
-.ki-name{font-size:12px;font-weight:600;margin-bottom:2px;display:flex;align-items:center;justify-content:space-between}
-.ki-name span{font-size:10px;color:var(--dim);font-weight:400}
-.ki-prop{font-size:11px;color:var(--text);font-weight:500;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ki-preview{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
-.ki-tags{display:flex;gap:4px}
-.ktag{font-size:9px;padding:1px 6px;border-radius:7px;font-weight:600}
-.ktag.active-k{background:var(--inv-bg);color:var(--inv)}
-.ktag.pending{background:var(--ag-bg);color:var(--ag)}
-.ktag.match{background:var(--cl-bg);color:var(--cl)}
-.unread{width:6px;height:6px;border-radius:50%;background:var(--ag);position:absolute;top:13px;right:12px}
-
-/* Key detail / chat */
-.key-chat{display:flex;flex-direction:column;height:calc(100vh - 54px);background:var(--bg)}
-.key-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim);gap:10px}
-.key-empty .ke-icon{font-size:36px;opacity:.3}
-.key-empty p{font-size:12px}
-.kc-status{padding:8px 18px;font-size:11px;display:flex;align-items:center;gap:7px;flex-shrink:0;border-bottom:1px solid var(--border)}
-.kc-status.active-k{background:var(--inv-bg);border-bottom-color:var(--inv-bd);color:var(--inv)}
-.kc-status.pending{background:var(--ag-bg);border-bottom-color:var(--ag-bd);color:var(--ag)}
-.kc-header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
-.kch-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-.kch-av.cl{background:var(--cl-bg);color:var(--cl)}
-.kch-info .cn{font-size:13px;font-weight:600;margin-bottom:1px}
-.kch-info .cs{font-size:11px;color:var(--sub)}
-.kch-actions{margin-left:auto;display:flex;gap:6px}
-.kcha{padding:5px 11px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid var(--border2);background:transparent;color:var(--sub);transition:all .18s;white-space:nowrap}
-.kcha:hover{color:var(--text)}
-.kcha.primary{background:var(--ag);color:#0e0e10;border-color:var(--ag)}
-.kcha.primary:hover{filter:brightness(1.08)}
-
-.client-mini{display:flex;gap:10px;align-items:center;background:var(--s2);border:1px solid var(--border2);border-radius:9px;padding:11px 14px;margin:10px 18px 0;flex-shrink:0}
-.cm-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;background:var(--cl-bg);color:var(--cl)}
-.cm-name{font-size:12px;font-weight:600;margin-bottom:2px}
-.cm-sub{font-size:10px;color:var(--sub);margin-bottom:5px}
-.cm-tags{display:flex;gap:4px;flex-wrap:wrap}
-.cm-tag{font-size:9px;padding:2px 6px;border-radius:6px;font-weight:600;background:var(--cl-bg);color:var(--cl)}
-
-.kc-msgs{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:9px}
-.msg{max-width:72%;display:flex;flex-direction:column;gap:3px}
-.msg.r{align-self:flex-start}
-.msg.s{align-self:flex-end}
-.msg-from{font-size:10px;color:var(--dim);margin-bottom:2px}
-.bubble{padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.55}
-.msg.r .bubble{background:var(--s2);border:1px solid var(--border2);border-radius:3px 10px 10px 10px}
-.msg.s .bubble{background:var(--ag-bg);border:1px solid var(--ag-bd);border-radius:10px 3px 10px 10px}
-.msg-time{font-size:10px;color:var(--dim)}
-.msg.s .msg-time{text-align:right}
-.doc-bubble{background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:8px 11px;display:flex;align-items:center;gap:8px;max-width:240px}
-.doc-bubble .di{font-size:16px}
-.doc-bubble .dn{font-size:11px;font-weight:500;margin-bottom:1px}
-.doc-bubble .ds{font-size:10px;color:var(--sub)}
-
-.kc-input{padding:12px 18px;border-top:1px solid var(--border);flex-shrink:0}
-.kci-row{display:flex;gap:6px;align-items:flex-end}
-.kci-inp{flex:1;background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;resize:none;height:38px;transition:border-color .18s}
-.kci-inp:focus{border-color:var(--ag)}
-.kci-send{width:36px;height:36px;border-radius:8px;background:var(--ag);border:none;color:#0e0e10;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.kci-tools{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
-.kci-tool{font-size:10px;color:var(--sub);cursor:pointer;padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;font-family:'Inter',sans-serif;transition:all .18s}
-.kci-tool:hover{color:var(--ag);border-color:var(--ag-bd)}
-
-/* ══════════════════════════════════
-   TAB 5 · CO-MANDATOS
-══════════════════════════════════ */
-.coman-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:18px}
-.coman-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:16px;transition:border-color .18s;cursor:pointer}
-.coman-card:hover{border-color:var(--border2)}
-.cc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
-.cc-prop{font-size:13px;font-weight:600;margin-bottom:3px}
-.cc-ref{font-size:10px;color:var(--sub)}
-.cc-status{font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px}
-.cc-status.active{background:var(--inv-bg);color:var(--inv)}
-.cc-status.pending{background:var(--ag-bg);color:var(--ag)}
-.cc-status.closed{background:var(--s3);color:var(--sub)}
-.cc-agencies{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
-.cc-agency{display:flex;align-items:center;gap:6px;background:var(--s2);border-radius:7px;padding:7px 10px;font-size:11px;flex:1}
-.cc-ag-icon{width:26px;height:26px;border-radius:6px;background:var(--ag-bg);display:flex;align-items:center;justify-content:center;font-size:11px}
-.cc-ag-name{font-weight:500;margin-bottom:1px}
-.cc-ag-pct{font-size:10px;color:var(--ag);font-weight:700}
-.cc-bar-row{margin-bottom:10px}
-.cc-bar-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-bottom:4px}
-.cc-track{height:4px;background:var(--s3);border-radius:2px;overflow:hidden}
-.cc-fill{height:100%;border-radius:2px;background:var(--ag)}
-.cc-footer{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--sub)}
-.cc-price{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:500;color:var(--text)}
-
-/* ══════════════════════════════════
-   TAB 6 · DOCUMENTOS
-══════════════════════════════════ */
-.docs-layout{display:grid;grid-template-columns:220px 1fr;gap:0;height:calc(100vh - 54px)}
-.docs-sidebar{background:var(--s1);border-right:1px solid var(--border);padding:18px;overflow-y:auto;height:100%}
-.docs-main{padding:22px 26px;overflow-y:auto;height:100%}
-.doc-cat{margin-bottom:18px}
-.doc-cat h5{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
-.doc-cat-item{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--sub);transition:all .18s;border:1px solid transparent;margin-bottom:3px}
-.doc-cat-item:hover{background:var(--s2);color:var(--text)}
-.doc-cat-item.active{background:var(--s2);color:var(--text);border-color:var(--border2)}
-.doc-cat-item .dc-count{margin-left:auto;font-size:10px;font-weight:600;color:var(--ag)}
-
-.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:11px;margin-bottom:18px}
-.doc-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:border-color .18s}
-.doc-card:hover{border-color:var(--border2)}
-.dc-icon{font-size:28px;margin-bottom:10px}
-.dc-name{font-size:12px;font-weight:600;margin-bottom:3px;line-height:1.35}
-.dc-meta{font-size:10px;color:var(--sub);margin-bottom:8px}
-.dc-status{font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;display:inline-block}
-.dc-status.ok{background:var(--inv-bg);color:var(--inv)}
-.dc-status.pending{background:var(--ag-bg);color:var(--ag)}
-.dc-status.draft{background:var(--s3);color:var(--sub)}
-
-/* ══════════════════════════════════
-   TAB 7 · ANALYTICS
-══════════════════════════════════ */
-.analytics-krow{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px}
-.chart-placeholder{background:var(--s1);border:1px solid var(--border);border-radius:11px;padding:16px;height:200px;display:flex;flex-direction:column}
-.chart-placeholder h4{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:400;margin-bottom:4px}
-.chart-placeholder p{font-size:11px;color:var(--sub);margin-bottom:14px}
-.chart-bars{display:flex;align-items:flex-end;gap:6px;flex:1}
-.bar{flex:1;border-radius:4px 4px 0 0;background:var(--ag-bg);border:1px solid var(--ag-bd);transition:all .3s;min-height:10px}
-.bar:hover{background:var(--ag-bg);filter:brightness(1.3);cursor:pointer}
-.bar-lbl{font-size:9px;color:var(--dim);text-align:center;margin-top:5px}
-.funnel-row{display:flex;flex-direction:column;gap:7px}
-.funnel-item{display:flex;align-items:center;gap:10px}
-.funnel-label{font-size:11px;color:var(--sub);width:100px;flex-shrink:0}
-.funnel-bar-wrap{flex:1;height:24px;background:var(--s3);border-radius:5px;overflow:hidden}
-.funnel-bar{height:100%;border-radius:5px;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:600;color:#0e0e10;white-space:nowrap}
-.funnel-num{font-size:12px;font-weight:600;color:var(--text);width:36px;text-align:right;flex-shrink:0}
-  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:var(--s1);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:520px;max-height:85vh;overflow-y:auto;padding:26px;position:relative}
+.ki-name{font-size:12px;font-weight:600;margin-bottom:1px}
+.ki-prop{font-size:11px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ki-sub{font-size:10px;color:var(--sub)}
+.ki-status{font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;flex-shrink:0}
+.ki-status.u{background:var(--inv-bg);color:var(--inv)}
+.ki-status.w{background:var(--ag-bg);color:var(--ag)}
+.ki-status.l{background:var(--red-bg);color:var(--red)}
+.key-detail{overflow-y:auto;height:100%}
+.kd-header{padding:10px 16px;font-size:12px;font-weight:500}
+.kd-header.u{background:var(--inv-bg);color:var(--inv);border-bottom:1px solid var(--inv-bd)}
+.kd-header.w{background:var(--ag-bg);color:var(--ag);border-bottom:1px solid var(--ag-bd)}
+.kd-header.l{background:var(--red-bg);color:var(--red);border-bottom:1px solid var(--red-bd)}
+.kd-placeholder{padding:40px;text-align:center;color:var(--dim);font-size:13px;line-height:1.7}
+#t-profile{background:var(--bg)}
+.profile-layout{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 54px)}
+.prof-left{padding:24px;overflow-y:auto;height:100%}
+.prof-right{background:var(--s1);border-left:1px solid var(--border);padding:24px;overflow-y:auto;height:100%}
+.ph-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.ph-av{width:48px;height:48px;border-radius:50%;background:var(--ag-bg);border:2px solid var(--ag-bd);display:flex;align-items:center;justify-content:center;font-size:18px}
+.ph-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;margin-bottom:2px}
+.ph-sub{font-size:11px;color:var(--sub)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center}
+.modal{background:var(--s1);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:540px;max-height:88vh;overflow-y:auto;padding:26px;position:relative}
 .modal-close{position:absolute;top:14px;right:14px;background:var(--s2);border:1px solid var(--border2);border-radius:6px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:var(--sub)}
 .modal-close:hover{color:var(--text)}
 .modal h2{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400;margin-bottom:4px}
-.modal-p{font-size:12px;color:var(--sub);margin-bottom:18px}
+.modal-sub{font-size:12px;color:var(--sub);margin-bottom:18px}
 .modal-confirm{width:100%;background:var(--ag);color:#0c0c0e;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-top:6px;transition:filter .18s}
 .modal-confirm:hover{filter:brightness(1.08)}
+.tag{font-size:9px;padding:2px 7px;border-radius:7px;font-weight:600}
+.tag.cl{background:var(--cl-bg);color:var(--cl)}.tag.ag{background:var(--ag-bg);color:var(--ag)}
+.tag.inv{background:var(--inv-bg);color:var(--inv)}.tag.red{background:var(--red-bg);color:var(--red)}
+.tag.dim{background:var(--s3);color:var(--sub)}
+.sep{display:block;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:12px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.frow{margin-bottom:12px}
+.frow label{display:block;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.frow2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.finp{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color .18s}
+.finp:focus{border-color:var(--ag)}.finp option{background:var(--s2)}
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;margin-bottom:12px}
+.check-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sub);cursor:pointer}
+.check-item input{cursor:pointer;accent-color:var(--ag)}
+.loading{padding:30px;text-align:center;color:var(--dim);font-size:12px}
+.empty-state{padding:40px;text-align:center;color:var(--dim);font-size:13px;line-height:1.7}
 .msg{padding:10px 13px;border-radius:8px;font-size:12px;margin-bottom:13px;display:none}
-.msg.error{background:rgba(168,90,90,0.09);border:1px solid rgba(168,90,90,0.22);color:#A85A5A}
+.msg.error{background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red)}
 .msg.success{background:var(--inv-bg);border:1px solid var(--inv-bd);color:var(--inv)}
 .msg.show{display:block}
-.frow{margin-bottom:13px}
-.frow label{display:block;font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
-.frow2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px}
+.save-btn{width:100%;background:var(--ag);color:#0c0c0e;border:none;border-radius:7px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-top:6px;transition:filter .18s}
+.save-btn:hover{filter:brightness(1.08)}
+.pref-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:11px}
+.pref-card h4{font-size:12px;font-weight:600;margin-bottom:9px}
+.pref-row{display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--sub)}
+.pref-row:last-child{border-bottom:none}
+.pref-row span:last-child{color:var(--text);font-weight:500}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const sbAuth = supabase.createClient('https://zftxrycmzvsebuqwhyis.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmdHhyeWNtenZzZWJ1cXdoeWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNDUzNDEsImV4cCI6MjA5MzgyMTM0MX0.OSh4bP5Ypi0Wsv-d5c2fi-bphnhhmLJoU-yN5cc1AGA');
-sbAuth.auth.getSession().then(function(res){
-  if(!res.data.session) window.location.href='login.html';
-});
-</script>
 </head>
 <body>
-
-<!-- NAV -->
-<nav>
-  <div class="logo" onclick="showTab('t-resumen')">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="11" stroke="#B8934A" stroke-width="0.6" opacity="0.3"/>
-      <polygon points="14,3 8,13 12,13 10,21 17,11 13,11" fill="#B8934A" opacity="0.7"/>
+  <nav>
+  <div class="logo" onclick="showTab('t-dashboard')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="11" stroke="#B8934A" stroke-width="0.6" opacity="0.35"/>
+      <polygon points="14,3 8,13 12,13 10,21 17,11 13,11" fill="#B8934A" opacity="0.82"/>
     </svg>
     <div class="logo-word">REALTHORS</div>
   </div>
   <div class="nav-tabs">
-    <button class="ntab active" onclick="showTab('t-resumen')">Resumen</button>
-    <button class="ntab" onclick="showTab('t-props')">Propiedades</button>
-    <button class="ntab" onclick="showTab('t-agenda')">Agenda</button>
-    <button class="ntab" onclick="showTab('t-keys')">Keys <span class="ntab-dot"></span></button>
-    <button class="ntab" onclick="showTab('t-coman')">Co-mandatos</button>
-    <button class="ntab" onclick="showTab('t-docs')">Documentos</button>
-    <button class="ntab" onclick="showTab('t-analytics')">Analytics</button>
+    <button class="ntab active" onclick="showTab('t-dashboard')">Resumen</button>
+    <button class="ntab" onclick="showTab('t-properties')">Propiedades</button>
+    <button class="ntab" onclick="showTab('t-keys')">Keys</button>
+    <button class="ntab" onclick="showTab('t-profile')">Mi agencia</button>
   </div>
   <div class="nav-right">
-    <span id="user-name" style="font-size:12px;color:var(--sub);font-weight:500"></span>
     <span class="badge-ag">Agencia</span>
-    <button class="btn-primary">+ Publicar bien</button>
+    <span id="user-name" style="font-size:12px;color:var(--sub);font-weight:500"></span>
     <div class="avatar" id="user-avatar">?</div>
-<button id="btn-logout" style="padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;background:transparent;color:var(--sub);border:1px solid var(--border2);cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s">Cerrar sesión</button>
+    <button class="btn-publish" onclick="openModal('modal-publish')">+ Publicar bien</button>
+    <button class="btn-logout" id="btn-logout">Cerrar sesión</button>
   </div>
 </nav>
 
-<!-- ══ TAB 1 · RESUMEN ══ -->
-<div id="t-resumen" class="screen active">
-  <div class="app-layout">
-    <div class="sidebar">
-      <div class="sb-who">
-        <div class="role">Agencia</div>
-        <div class="name">Nexo Andorra SL</div>
-        <div class="plan">Plan Professional</div>
-      </div>
-      <div class="sb-section">Navegación</div>
-      <div class="sb-item active" onclick="showTab('t-resumen')">📊 Resumen</div>
-      <div class="sb-item" onclick="showTab('t-props')">🏠 Propiedades</div>
-      <div class="sb-item" onclick="showTab('t-agenda')">📅 Agenda</div>
-      <div class="sb-item" onclick="showTab('t-keys')">🗝️ Keys <span class="si-badge">5</span></div>
-      <div class="sb-item" onclick="showTab('t-coman')">🤝 Co-mandatos</div>
-      <div class="sb-item" onclick="showTab('t-docs')">📄 Documentos</div>
-      <div class="sb-item" onclick="showTab('t-analytics')">📈 Analytics</div>
-      <div class="sb-section">Configuración</div>
-      <div class="sb-item">⚙️ Mi agencia</div>
-      <div class="sb-item">👥 Equipo</div>
-      <div class="sb-item">💳 Plan & facturación</div>
+<div id="t-dashboard" class="screen active">
+  <div class="dashboard-main">
+    <div class="dash-hd"><h2>Resumen</h2><p>Bienvenido a tu panel de agencia Realthors</p></div>
+    <div class="krow">
+      <div class="kcard"><div class="klbl">Propiedades activas</div><div class="kval" id="dash-props">—</div><div class="kdelta">Publicadas</div></div>
+      <div class="kcard"><div class="klbl">Keys recibidas</div><div class="kval" id="dash-keys">—</div><div class="kdelta">Total</div></div>
+      <div class="kcard"><div class="klbl">Waiting</div><div class="kval" id="dash-waiting">—</div><div class="kdelta" style="color:var(--ag)">Pendientes revisión</div></div>
+      <div class="kcard"><div class="klbl">Unlocked</div><div class="kval" id="dash-unlocked">—</div><div class="kdelta">Conversaciones activas</div></div>
     </div>
-    <div class="main-col">
-      <div class="page-hd">
-        <div><h2>Buenos días, Nexo Andorra</h2><p>Miércoles 7 mayo · 3 visitas hoy · 2 Keys nuevas · 1 co-mandato pendiente</p></div>
-        <div class="page-hd-actions"><button class="btn-ghost">Ver todos los informes</button><button class="btn-primary">+ Publicar bien</button></div>
-      </div>
-
-      <div class="krow">
-        <div class="kcard"><div class="klbl">Propiedades activas</div><div class="kval">47</div><div class="kdelta up">↑ +3 este mes</div></div>
-        <div class="kcard"><div class="klbl">Keys activas</div><div class="kval">31</div><div class="kdelta up">↑ +8 esta semana</div></div>
-        <div class="kcard"><div class="klbl">Visitas este mes</div><div class="kval">24</div><div class="kdelta">12 confirmadas</div></div>
-        <div class="kcard"><div class="klbl">Vol. transacciones</div><div class="kval">3</div><div class="kdelta up">240k€ cerrado</div></div>
-      </div>
-
-      <div class="grid2">
-        <div class="card">
-          <h4>Visitas de hoy <span>3 programadas</span></h4>
-          <div class="row-item">
-            <div class="ri-dot green"></div>
-            <div class="ri-info"><strong>Àtic Escaldes · RT-0847</strong><span>Marie Dupont (FR) · No-residente · Compradora</span></div>
-            <div class="ri-right">10:30h<br><span class="tag inv">Confirmada</span></div>
-          </div>
-          <div class="row-item">
-            <div class="ri-dot amber"></div>
-            <div class="ri-info"><strong>Chalet Ordino · RT-0612</strong><span>Klaus Weber (DE) · Familia · Comprador</span></div>
-            <div class="ri-right">12:00h<br><span class="tag ag">Pendiente</span></div>
-          </div>
-          <div class="row-item">
-            <div class="ri-dot red"></div>
-            <div class="ri-info"><strong>Estudio Center · RT-0903</strong><span>Lucía Martín (ES) · No-residente</span></div>
-            <div class="ri-right">16:00h<br><span class="tag red">Cancelada</span></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h4>Top Keys IA <span>Por compatibilidad</span></h4>
-          <div class="row-item">
-            <div style="width:32px;height:32px;border-radius:50%;background:var(--cl-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--cl);flex-shrink:0">MD</div>
-            <div class="ri-info"><strong>Marie Dupont</strong><span>Àtic Escaldes · Inversora FR · No-residente</span></div>
-            <div class="ri-right green">96%</div>
-          </div>
-          <div class="row-item">
-            <div style="width:32px;height:32px;border-radius:50%;background:var(--cl-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--cl);flex-shrink:0">KW</div>
-            <div class="ri-info"><strong>Klaus Weber</strong><span>Chalet Ordino · Familia DE</span></div>
-            <div class="ri-right green">89%</div>
-          </div>
-          <div class="row-item">
-            <div style="width:32px;height:32px;border-radius:50%;background:var(--inv-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--inv);flex-shrink:0">AS</div>
-            <div class="ri-info"><strong>Ahmed Saleh</strong><span>Oficina Andorra · Inversor UAE</span></div>
-            <div class="ri-right green">84%</div>
-          </div>
-          <div class="row-item">
-            <div style="width:32px;height:32px;border-radius:50%;background:var(--cl-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--cl);flex-shrink:0">LP</div>
-            <div class="ri-info"><strong>Lena Petrova</strong><span>Piso Escaldes · Patrimonial</span></div>
-            <div class="ri-right green">78%</div>
-          </div>
+    <div class="dash-grid">
+      <div class="card">
+        <h4>Acciones rápidas</h4>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="da-btn primary" onclick="openModal('modal-publish')">+ Publicar nueva propiedad</button>
+          <button class="da-btn" onclick="showTab('t-keys')">Ver Keys recibidas</button>
+          <button class="da-btn" onclick="showTab('t-properties')">Gestionar propiedades</button>
         </div>
       </div>
-
-      <div class="grid2">
-        <div class="card">
-          <h4>Co-mandatos activos <span>3 en curso</span></h4>
-          <div class="row-item">
-            <div class="ri-info"><strong>Àtic Escaldes · RT-0847</strong><span>Con Immobiliaria Pirineus · Tu parte: 40%</span></div>
-            <div class="ri-right amber">40%</div>
-          </div>
-          <div class="row-item">
-            <div class="ri-info"><strong>Chalet Ordino · RT-0612</strong><span>Con Alpine Realty · Tu parte: 50%</span></div>
-            <div class="ri-right amber">50%</div>
-          </div>
-          <div class="row-item">
-            <div class="ri-info"><strong>Villa Pas de la Casa</strong><span>Con Luxury Andorra · Tu parte: 30%</span></div>
-            <div class="ri-right amber">30%</div>
-          </div>
-        </div>
-
-        <div class="ai-box">
-          <div class="ai-box-head">Asistente IA · Secretaría Realthor</div>
-          <div class="cbubble u">"¿Qué documentos necesita Marie para comprar siendo no-residente francesa?"</div>
-          <div class="cbubble b"><strong>Realthor IA:</strong> Para Marie: pasaporte vigente, extractos bancarios (3 meses), declaración de origen de fondos, NIE (si aplica) y poder notarial si no asiste a la firma. Proceso: 4–6 semanas. ¿Genero el checklist y el borrador de arras?</div>
-          <div class="cq">
-            <button class="cqbtn">Generar checklist</button>
-            <button class="cqbtn">Contrato de arras</button>
-            <button class="cqbtn">Informe fiscal FR-AND</button>
-            <button class="cqbtn">Planning transacción</button>
-          </div>
+      <div class="card">
+        <h4>Información</h4>
+        <div style="font-size:11px;color:var(--sub);line-height:1.8">
+          <p>📌 Publica tus propiedades para que aparezcan en el feed de los clientes.</p>
+          <p style="margin-top:8px">🗝️ Cuando un cliente solicite una Key, aparecerá aquí.</p>
+          <p style="margin-top:8px">✅ Acepta o rechaza Keys desde la sección Keys.</p>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ TAB 2 · PROPIEDADES ══ -->
-<div id="t-props" class="screen">
+<div id="t-properties" class="screen">
   <div class="props-layout">
-    <div class="props-main">
-      <div class="page-hd">
-        <div><h2>Mis propiedades</h2><p>47 activas · 3 en borrador · 2 vendidas este mes</p></div>
-        <div class="page-hd-actions">
-          <select style="background:var(--s1);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--text);font-family:'Inter',sans-serif;outline:none">
-            <option>Todas</option><option>Venta</option><option>Alquiler</option><option>Off-market</option>
-          </select>
-          <button class="btn-primary" onclick="openModal('modal-publish')">+ Nueva propiedad</button>
-        </div>
+    <div class="props-list">
+      <div class="props-hd">
+        <div><h2>Mis propiedades</h2></div>
+        <button class="btn-publish" onclick="openModal('modal-publish')">+ Nueva propiedad</button>
       </div>
-      <div id="prop-list"></div>
+      <div id="prop-list"><div class="loading">Cargando...</div></div>
     </div>
     <div class="props-detail" id="prop-detail">
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--dim);gap:10px">
-        <div style="font-size:36px;opacity:.3">🏠</div>
-        <p style="font-size:12px">Selecciona una propiedad</p>
+      <div class="empty-state" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div style="font-size:32px;opacity:.3">🏠</div>
+        <p style="margin-top:8px">Selecciona una propiedad</p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ TAB 3 · AGENDA ══ -->
-<div id="t-agenda" class="screen">
-  <div class="agenda-layout">
-    <div class="agenda-main">
-      <div class="page-hd">
-        <div><h2>Agenda de visitas</h2><p>Semana del 5 al 9 de mayo de 2025</p></div>
-        <div class="page-hd-actions">
-          <button class="btn-ghost">Hoy</button>
-          <button class="btn-primary">+ Nueva visita</button>
-        </div>
-      </div>
-      <div class="week-nav">
-        <div class="week-nav-btns"><button class="wnbtn">‹</button><button class="wnbtn">›</button></div>
-      </div>
-      <!-- Week grid -->
-      <div class="week-grid">
-        <div class="wg-header"></div>
-        <div class="wg-header"><div class="wd">LUN</div><div class="wdate">5</div></div>
-        <div class="wg-header"><div class="wd">MAR</div><div class="wdate">6</div></div>
-        <div class="wg-header"><div class="wd">MIÉ</div><div class="wdate">7</div></div>
-        <div class="wg-header"><div class="wd">JUE</div><div class="wdate">8</div></div>
-        <div class="wg-header"><div class="wd">VIE</div><div class="wdate">9</div></div>
-
-        <div class="wg-time">09:00</div>
-        <div class="wg-cell"></div>
-        <div class="wg-cell"></div>
-        <div class="wg-cell"></div>
-        <div class="wg-cell"><div class="wg-event pending"><div class="ev-time">09:30</div><div class="ev-name">Klaus Weber</div><div>Chalet Ordino</div></div></div>
-        <div class="wg-cell"></div>
-
-        <div class="wg-time">10:00</div>
-        <div class="wg-cell"><div class="wg-event confirmed"><div class="ev-time">10:00</div><div class="ev-name">Ahmed Saleh</div><div>Oficina Andorra</div></div></div>
-        <div class="wg-cell"></div>
-        <div class="wg-cell"><div class="wg-event confirmed"><div class="ev-time">10:30</div><div class="ev-name">Marie Dupont</div><div>Àtic Escaldes</div></div></div>
-        <div class="wg-cell"></div>
-        <div class="wg-cell"><div class="wg-event confirmed"><div class="ev-time">10:30</div><div class="ev-name">Marie Dupont</div><div>Àtic Escaldes</div></div></div>
-
-        <div class="wg-time">12:00</div>
-        <div class="wg-cell"></div>
-        <div class="wg-cell"><div class="wg-event confirmed"><div class="ev-time">12:00</div><div class="ev-name">Lena Petrova</div><div>Piso Escaldes</div></div></div>
-        <div class="wg-cell"><div class="wg-event pending"><div class="ev-time">12:00</div><div class="ev-name">Klaus Weber</div><div>Chalet Ordino</div></div></div>
-        <div class="wg-cell"></div>
-        <div class="wg-cell"></div>
-
-        <div class="wg-time">16:00</div>
-        <div class="wg-cell"></div>
-        <div class="wg-cell"></div>
-        <div class="wg-cell"><div class="wg-event cancelled"><div class="ev-time">16:00</div><div class="ev-name">Lucía Martín</div><div>Estudio Center</div></div></div>
-        <div class="wg-cell"></div>
-        <div class="wg-cell"><div class="wg-event confirmed"><div class="ev-time">16:30</div><div class="ev-name">Ahmed Saleh</div><div>La Massana</div></div></div>
-      </div>
-    </div>
-    <div class="agenda-side">
-      <div style="font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:12px">Visitas hoy — Mié 7 mayo</div>
-      <div class="visit-card">
-        <div class="vc-top"><span class="vc-time">10:30h</span><span class="tag inv">Confirmada</span></div>
-        <div class="vc-prop">Àtic Escaldes-Engordany · RT-0847</div>
-        <div class="vc-client">Marie Dupont · Francia · No-residente</div>
-        <div class="vc-actions">
-          <button class="vc-btn">Ver Key</button>
-          <button class="vc-btn">📍 Ruta</button>
-          <button class="vc-btn">📞 Llamar</button>
-        </div>
-      </div>
-      <div class="visit-card">
-        <div class="vc-top"><span class="vc-time">12:00h</span><span class="tag ag">Pendiente</span></div>
-        <div class="vc-prop">Chalet Ordino · RT-0612</div>
-        <div class="vc-client">Klaus Weber · Alemania · Familia</div>
-        <div class="vc-actions">
-          <button class="vc-btn confirm">Confirmar</button>
-          <button class="vc-btn cancel">Cancelar</button>
-          <button class="vc-btn">📞 Llamar</button>
-        </div>
-      </div>
-      <div class="visit-card" style="opacity:.6">
-        <div class="vc-top"><span class="vc-time">16:00h</span><span class="tag red">Cancelada</span></div>
-        <div class="vc-prop">Estudio Center · RT-0903</div>
-        <div class="vc-client">Lucía Martín · España</div>
-        <div class="vc-actions"><button class="vc-btn">Reprogramar</button></div>
-      </div>
-      <div style="margin-top:18px;font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:10px">Próximas visitas</div>
-      <div class="row-item"><div class="ri-dot green"></div><div class="ri-info"><strong>Marie Dupont · Àtic Escaldes</strong><span>Vie 9 may · 10:30h</span></div></div>
-      <div class="row-item"><div class="ri-dot amber"></div><div class="ri-info"><strong>Lena Petrova · Piso Escaldes</strong><span>Vie 9 may · 16:30h</span></div></div>
-      <div class="row-item"><div class="ri-dot green"></div><div class="ri-info"><strong>Ahmed Saleh · Oficina AND</strong><span>Lun 12 may · 11:00h</span></div></div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ TAB 4 · KEYS ══ -->
 <div id="t-keys" class="screen">
   <div class="keys-layout">
-    <div class="keys-list-col">
-      <div class="kl-top">
-        <h3>Keys 🗝️ <span style="font-size:11px;color:var(--ag);font-weight:500">31 activas</span></h3>
-        <input class="kl-search" type="text" placeholder="Buscar cliente o propiedad...">
-      </div>
-      <div class="kl-stabs">
-        <button class="kstab active" onclick="filterKs(this,'all')">Todas <span class="kstab-count ag">31</span></button>
-        <button class="kstab" onclick="filterKs(this,'active')">Activas <span class="kstab-count inv">22</span></button>
-        <button class="kstab" onclick="filterKs(this,'pending')">Pendientes <span class="kstab-count ag">6</span></button>
-        <button class="kstab" onclick="filterKs(this,'closed')">Cerradas <span class="kstab-count dim">3</span></button>
-      </div>
-      <div class="keys-list">
-        <div class="key-item active" data-ks="active" onclick="openAgKey('md',this)">
-          <div class="ki-av cl">MD</div>
-          <div class="ki-info">
-            <div class="ki-name">Marie Dupont <span>10:24</span></div>
-            <div class="ki-prop">Àtic Escaldes · 850.000 €</div>
-            <div class="ki-preview">Le envío el checklist de documentos...</div>
-            <div class="ki-tags"><span class="ktag active-k">● Activa</span><span class="ktag match">96% compat.</span></div>
-          </div>
-          <div class="unread"></div>
-        </div>
-        <div class="key-item" data-ks="active" onclick="openAgKey('kw',this)">
-          <div class="ki-av cl">KW</div>
-          <div class="ki-info">
-            <div class="ki-name">Klaus Weber <span>Ayer</span></div>
-            <div class="ki-prop">Chalet Ordino · 1.200.000 €</div>
-            <div class="ki-preview">Visita confirmada para el viernes...</div>
-            <div class="ki-tags"><span class="ktag active-k">● Activa</span><span class="ktag match">89% compat.</span></div>
-          </div>
-          <div class="unread"></div>
-        </div>
-        <div class="key-item" data-ks="active" onclick="openAgKey('as',this)">
-          <div class="ki-av inv">AS</div>
-          <div class="ki-info">
-            <div class="ki-name">Ahmed Saleh <span>Ayer</span></div>
-            <div class="ki-prop">Oficina Andorra · 890.000 €</div>
-            <div class="ki-preview">¿El bien permite domiciliar sociedad?</div>
-            <div class="ki-tags"><span class="ktag active-k">● Activa</span><span class="ktag match">84% compat.</span></div>
-          </div>
-        </div>
-        <div class="key-item" data-ks="pending" onclick="openAgKey('lp',this)">
-          <div class="ki-av cl">LP</div>
-          <div class="ki-info">
-            <div class="ki-name">Lena Petrova <span>Lun</span></div>
-            <div class="ki-prop">Piso Escaldes · 480.000 €</div>
-            <div class="ki-preview">Dossier incompleto — falta NIE</div>
-            <div class="ki-tags"><span class="ktag pending">⏳ Dossier pendiente</span></div>
-          </div>
-        </div>
-        <div class="key-item" data-ks="pending" onclick="openAgKey('jm',this)">
-          <div class="ki-av cl">JM</div>
-          <div class="ki-info">
-            <div class="ki-name">Jean Martin <span>Dom</span></div>
-            <div class="ki-prop">La Massana · 620.000 €</div>
-            <div class="ki-preview">Pendiente validación bancaria</div>
-            <div class="ki-tags"><span class="ktag pending">⏳ Validación pendiente</span></div>
-          </div>
-        </div>
-        <div class="key-item" data-ks="closed" onclick="openAgKey('closed1',this)">
-          <div class="ki-av" style="background:var(--s3);color:var(--sub)">RK</div>
-          <div class="ki-info" style="opacity:.6">
-            <div class="ki-name">Robert Kim <span>Abr</span></div>
-            <div class="ki-prop">Villa Ordino · 2.200.000 €</div>
-            <div class="ki-preview">Transacción cerrada ✓</div>
-            <div class="ki-tags"><span class="ktag" style="background:var(--inv-bg);color:var(--inv)">✓ Cerrada</span></div>
-          </div>
-        </div>
-      </div>
+    <div class="keys-col">
+      <div class="keys-col-hd"><h3>Keys recibidas</h3></div>
+      <div class="key-list" id="keys-list"><div class="loading">Cargando...</div></div>
     </div>
-    <div id="key-chat-area" class="key-chat">
-      <div class="key-empty">
-        <div class="ke-icon">🗝️</div>
-        <p>Selecciona una Key para gestionar la conversación</p>
+    <div class="key-detail" id="key-detail">
+      <div class="kd-placeholder" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div style="font-size:36px;margin-bottom:12px">🗝️</div>
+        <p>Selecciona una Key para gestionarla</p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ TAB 5 · CO-MANDATOS ══ -->
-<div id="t-coman" class="screen">
-  <div style="padding:22px 26px;overflow-y:auto;height:calc(100vh - 54px)">
-    <div class="page-hd">
-      <div><h2>Co-mandatos</h2><p>3 activos · 1 pendiente de firma · 2 cerrados este mes</p></div>
-      <div class="page-hd-actions"><button class="btn-primary">+ Nuevo co-mandato</button></div>
+<div id="t-profile" class="screen">
+  <div class="profile-layout">
+    <div class="prof-left">
+      <div class="ph-top"><div class="ph-av">🏢</div><div><div class="ph-name">Mi agencia</div><div class="ph-sub">Agencia · Realthors</div></div></div>
+      <span class="sep">Datos de la agencia</span>
+      <div class="frow"><label>Nombre comercial</label><input class="finp" id="ag-name" placeholder="Nombre de la agencia"></div>
+      <div class="frow2">
+        <div><label>Teléfono</label><input class="finp" id="ag-phone" placeholder="+376 800 000"></div>
+        <div><label>Email</label><input class="finp" id="ag-email" placeholder="info@agencia.com"></div>
+      </div>
+      <div class="frow"><label>Dirección</label><input class="finp" id="ag-address" placeholder="Av. Meritxell 42, Andorra la Vella"></div>
+      <span class="sep">Parroquias donde operas</span>
+      <div class="check-grid">
+        <label class="check-item"><input type="checkbox"> Andorra la Vella</label>
+        <label class="check-item"><input type="checkbox"> Escaldes-Engordany</label>
+        <label class="check-item"><input type="checkbox"> Encamp</label>
+        <label class="check-item"><input type="checkbox"> La Massana</label>
+        <label class="check-item"><input type="checkbox"> Canillo</label>
+        <label class="check-item"><input type="checkbox"> Ordino</label>
+        <label class="check-item"><input type="checkbox"> Sant Julià de Lòria</label>
+      </div>
+      <button class="save-btn">Guardar cambios</button>
     </div>
-    <div class="krow">
-      <div class="kcard"><div class="klbl">Co-mandatos activos</div><div class="kval">3</div><div class="kdelta up">↑ +1 este mes</div></div>
-      <div class="kcard"><div class="klbl">Agencias colaboradoras</div><div class="kval">5</div><div class="kdelta">En 3 países</div></div>
-      <div class="kcard"><div class="klbl">Comisión media</div><div class="kval">42%</div><div class="kdelta">De las transacciones</div></div>
-      <div class="kcard"><div class="klbl">Volumen co-mandatado</div><div class="kval">4.6M€</div><div class="kdelta up">↑ Activo</div></div>
-    </div>
-    <div class="coman-grid">
-      <div class="coman-card">
-        <div class="cc-top">
-          <div><div class="cc-prop">Àtic Escaldes-Engordany</div><div class="cc-ref">RT-2024-0847 · 850.000 €</div></div>
-          <span class="cc-status active">● Activo</span>
-        </div>
-        <div class="cc-agencies">
-          <div class="cc-agency"><div class="cc-ag-icon">🏢</div><div><div class="cc-ag-name">Nexo Andorra</div><div class="cc-ag-pct">40% (tu parte)</div></div></div>
-          <div class="cc-agency"><div class="cc-ag-icon">🏔️</div><div><div class="cc-ag-name">Immob. Pirineus</div><div class="cc-ag-pct">60%</div></div></div>
-        </div>
-        <div class="cc-bar-row"><div class="cc-bar-lbl"><span>Tu parte: 40%</span><span>34.000 € estimado</span></div><div class="cc-track"><div class="cc-fill" style="width:40%"></div></div></div>
-        <div class="cc-footer"><span>3 Keys activas</span><span class="cc-price">850.000 €</span></div>
-      </div>
-      <div class="coman-card">
-        <div class="cc-top">
-          <div><div class="cc-prop">Chalet Ordino</div><div class="cc-ref">RT-2024-0612 · 1.200.000 €</div></div>
-          <span class="cc-status active">● Activo</span>
-        </div>
-        <div class="cc-agencies">
-          <div class="cc-agency"><div class="cc-ag-icon">🏢</div><div><div class="cc-ag-name">Nexo Andorra</div><div class="cc-ag-pct">50% (tu parte)</div></div></div>
-          <div class="cc-agency"><div class="cc-ag-icon">⛷️</div><div><div class="cc-ag-name">Alpine Realty</div><div class="cc-ag-pct">50%</div></div></div>
-        </div>
-        <div class="cc-bar-row"><div class="cc-bar-lbl"><span>Tu parte: 50%</span><span>48.000 € estimado</span></div><div class="cc-track"><div class="cc-fill" style="width:50%"></div></div></div>
-        <div class="cc-footer"><span>2 Keys activas</span><span class="cc-price">1.200.000 €</span></div>
-      </div>
-      <div class="coman-card">
-        <div class="cc-top">
-          <div><div class="cc-prop">Villa Pas de la Casa</div><div class="cc-ref">RT-2024-0721 · 3.100.000 €</div></div>
-          <span class="cc-status pending">⏳ Firma pendiente</span>
-        </div>
-        <div class="cc-agencies">
-          <div class="cc-agency"><div class="cc-ag-icon">🏢</div><div><div class="cc-ag-name">Nexo Andorra</div><div class="cc-ag-pct">30% (tu parte)</div></div></div>
-          <div class="cc-agency"><div class="cc-ag-icon">💎</div><div><div class="cc-ag-name">Luxury Andorra</div><div class="cc-ag-pct">70%</div></div></div>
-        </div>
-        <div class="cc-bar-row"><div class="cc-bar-lbl"><span>Tu parte: 30%</span><span>93.000 € estimado</span></div><div class="cc-track"><div class="cc-fill" style="width:30%"></div></div></div>
-        <div class="cc-footer"><span>Pendiente de firma</span><span class="cc-price">3.100.000 €</span></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h4>Agencias colaboradoras <span>Red Realthor</span></h4>
-      <div class="row-item"><div class="ri-dot green"></div><div class="ri-info"><strong>Immobiliaria Pirineus</strong><span>La Massana · 3 co-mandatos · Especialidad: residencial</span></div><div class="ri-right">2 activos</div></div>
-      <div class="row-item"><div class="ri-dot green"></div><div class="ri-info"><strong>Alpine Realty</strong><span>Ordino · 2 co-mandatos · Especialidad: ski y montaña</span></div><div class="ri-right">1 activo</div></div>
-      <div class="row-item"><div class="ri-dot amber"></div><div class="ri-info"><strong>Luxury Andorra</strong><span>Escaldes · 1 co-mandato · Especialidad: lujo y off-market</span></div><div class="ri-right">Firma pend.</div></div>
-      <div class="row-item"><div class="ri-dot blue"></div><div class="ri-info"><strong>Barcelona Prime</strong><span>Barcelona · 0 co-mandatos · Posible colaboración</span></div><div class="ri-right"><button class="vc-btn">Proponer</button></div></div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ TAB 6 · DOCUMENTOS ══ -->
-<div id="t-docs" class="screen">
-  <div class="docs-layout">
-    <div class="docs-sidebar">
-      <div style="font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:12px">Categorías</div>
-      <div class="doc-cat">
-        <div class="doc-cat-item active">📁 Todos los documentos <span class="dc-count">34</span></div>
-      </div>
-      <div class="doc-cat">
-        <h5>Por tipo</h5>
-        <div class="doc-cat-item">📑 Contratos de arras <span class="dc-count">8</span></div>
-        <div class="doc-cat-item">🏠 Escrituras <span class="dc-count">4</span></div>
-        <div class="doc-cat-item">📋 Dossiers cliente <span class="dc-count">12</span></div>
-        <div class="doc-cat-item">⚖️ Informes jurídicos <span class="dc-count">6</span></div>
-        <div class="doc-cat-item">💰 Simulaciones fin. <span class="dc-count">4</span></div>
-      </div>
-      <div class="doc-cat">
-        <h5>Por estado</h5>
-        <div class="doc-cat-item">✅ Firmados <span class="dc-count">18</span></div>
-        <div class="doc-cat-item">⏳ Pendientes firma <span class="dc-count">9</span></div>
-        <div class="doc-cat-item">📝 Borradores <span class="dc-count">7</span></div>
-      </div>
-    </div>
-    <div class="docs-main">
-      <div class="page-hd">
-        <div><h2>Documentos</h2><p>34 documentos · 9 pendientes de firma</p></div>
-        <div class="page-hd-actions">
-          <button class="btn-ghost">Generar con IA →</button>
-          <button class="btn-primary">+ Subir documento</button>
-        </div>
-      </div>
-      <div class="doc-grid">
-        <div class="doc-card"><div class="dc-icon">📑</div><div class="dc-name">Contrato_Arras_Dupont_RT0847.pdf</div><div class="dc-meta">Marie Dupont · 2 mayo 2025 · 145 KB</div><div class="dc-status pending">⏳ Pendiente firma</div></div>
-        <div class="doc-card"><div class="dc-icon">📋</div><div class="dc-name">Dossier_Dupont_Completo.pdf</div><div class="dc-meta">Marie Dupont · 1 mayo 2025 · 890 KB</div><div class="dc-status ok">✓ Validado</div></div>
-        <div class="doc-card"><div class="dc-icon">⚖️</div><div class="dc-name">Informe_Fiscal_NoResidente_FR.pdf</div><div class="dc-meta">Realthor IA · 30 abr 2025 · 312 KB</div><div class="dc-status ok">✓ Generado</div></div>
-        <div class="doc-card"><div class="dc-icon">📑</div><div class="dc-name">Contrato_Arras_Weber_RT0612.pdf</div><div class="dc-meta">Klaus Weber · 28 abr 2025 · 138 KB</div><div class="dc-status ok">✓ Firmado</div></div>
-        <div class="doc-card"><div class="dc-icon">💰</div><div class="dc-name">Simulacion_Financiera_RT0847.pdf</div><div class="dc-meta">Realthor IA · 28 abr 2025 · 95 KB</div><div class="dc-status ok">✓ Generado</div></div>
-        <div class="doc-card"><div class="dc-icon">📋</div><div class="dc-name">Dossier_Petrova_Pendiente.pdf</div><div class="dc-meta">Lena Petrova · 25 abr 2025 · 420 KB</div><div class="dc-status pending">⏳ Incompleto</div></div>
-        <div class="doc-card"><div class="dc-icon">🏠</div><div class="dc-name">Escritura_RT0521_Firmada.pdf</div><div class="dc-meta">Robert Kim · 15 abr 2025 · 2.1 MB</div><div class="dc-status ok">✓ Firmado</div></div>
-        <div class="doc-card"><div class="dc-icon">📝</div><div class="dc-name">Mandato_CoAgencia_Pirineus.pdf</div><div class="dc-meta">Co-mandato · 10 abr 2025 · 78 KB</div><div class="dc-status draft">Borrador</div></div>
-      </div>
-      <div class="ai-box" style="max-width:600px">
-        <div class="ai-box-head">Generador de documentos IA</div>
-        <p style="font-size:12px;color:var(--sub);margin-bottom:10px">Genera contratos, informes jurídicos y simulaciones financieras automáticamente</p>
-        <div class="cq">
-          <button class="cqbtn">📑 Contrato de arras</button>
-          <button class="cqbtn">⚖️ Informe fiscal</button>
-          <button class="cqbtn">💰 Simulación financiera</button>
-          <button class="cqbtn">📋 Checklist cliente</button>
-          <button class="cqbtn">🤝 Acuerdo co-mandato</button>
-        </div>
+    <div class="prof-right">
+      <span class="sep">Estadísticas</span>
+      <div class="pref-card">
+        <h4>Mi actividad</h4>
+        <div class="pref-row"><span>Propiedades activas</span><span id="ag-stat-props">—</span></div>
+        <div class="pref-row"><span>Keys recibidas</span><span id="ag-stat-keys">—</span></div>
+        <div class="pref-row"><span>Waiting</span><span id="ag-stat-waiting" style="color:var(--ag)">—</span></div>
+        <div class="pref-row"><span>Unlocked</span><span id="ag-stat-unlocked" style="color:var(--inv)">—</span></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ TAB 7 · ANALYTICS ══ -->
-<div id="t-analytics" class="screen">
-  <div style="padding:22px 26px;overflow-y:auto;height:calc(100vh - 54px)">
-    <div class="page-hd">
-      <div><h2>Analytics</h2><p>Mayo 2025 · Comparativa con abril 2025</p></div>
-      <div class="page-hd-actions">
-        <select style="background:var(--s1);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--text);font-family:'Inter',sans-serif;outline:none">
-          <option>Este mes</option><option>Último trimestre</option><option>Este año</option>
-        </select>
-        <button class="btn-ghost">Exportar →</button>
-      </div>
-    </div>
-    <div class="krow">
-      <div class="kcard"><div class="klbl">Visitas realizadas</div><div class="kval">24</div><div class="kdelta up">↑ +6 vs abril</div></div>
-      <div class="kcard"><div class="klbl">Keys abiertas</div><div class="kval">31</div><div class="kdelta up">↑ +12 vs abril</div></div>
-      <div class="kcard"><div class="klbl">Tasa conversión</div><div class="kval">12%</div><div class="kdelta up">↑ +2pp vs abril</div></div>
-      <div class="kcard"><div class="klbl">Tiempo medio cierre</div><div class="kval">38d</div><div class="kdelta dn">↓ −4d vs abril</div></div>
-    </div>
-    <div class="grid2">
-      <div class="chart-placeholder">
-        <h4>Visitas por semana</h4>
-        <p>Mayo 2025</p>
-        <div class="chart-bars" id="chart-bars"></div>
-      </div>
-      <div class="card">
-        <h4>Embudo de conversión</h4>
-        <div class="funnel-row">
-          <div class="funnel-item"><div class="funnel-label">Propiedades</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--ag)">47</div></div><div class="funnel-num">47</div></div>
-          <div class="funnel-item"><div class="funnel-label">Keys abiertas</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:66%;background:var(--cl)">31</div></div><div class="funnel-num">31</div></div>
-          <div class="funnel-item"><div class="funnel-label">Visitas</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:51%;background:var(--cl)">24</div></div><div class="funnel-num">24</div></div>
-          <div class="funnel-item"><div class="funnel-label">Postulaciones</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:25%;background:var(--inv)">12</div></div><div class="funnel-num">12</div></div>
-          <div class="funnel-item"><div class="funnel-label">Transacciones</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:6%;background:var(--inv)">3</div></div><div class="funnel-num">3</div></div>
-        </div>
-      </div>
-    </div>
-    <div class="grid2">
-      <div class="card">
-        <h4>Propiedades más vistas <span>Este mes</span></h4>
-        <div class="row-item"><div class="ri-info"><strong>Àtic Escaldes · RT-0847</strong><span>850.000 €</span></div><div class="ri-right">142 vistas<br><span style="color:var(--inv);font-size:10px">+38%</span></div></div>
-        <div class="row-item"><div class="ri-info"><strong>Chalet Ordino · RT-0612</strong><span>1.200.000 €</span></div><div class="ri-right">98 vistas<br><span style="color:var(--inv);font-size:10px">+12%</span></div></div>
-        <div class="row-item"><div class="ri-info"><strong>La Massana · RT-0521</strong><span>620.000 €</span></div><div class="ri-right">76 vistas<br><span style="color:var(--ag);font-size:10px">+4%</span></div></div>
-        <div class="row-item"><div class="ri-info"><strong>Estudio Canillo · RT-0903</strong><span>2.800 €/mes</span></div><div class="ri-right">54 vistas<br><span style="color:var(--red);font-size:10px">−8%</span></div></div>
-      </div>
-      <div class="card">
-        <h4>Perfil de clientes <span>Keys activas</span></h4>
-        <div class="row-item"><div class="ri-info"><strong>No-residentes</strong><span>62% de las Keys activas</span></div><div class="ri-right amber">62%</div></div>
-        <div class="row-item"><div class="ri-info"><strong>Compradores</strong><span>74% vs 26% alquiler</span></div><div class="ri-right amber">74%</div></div>
-        <div class="row-item"><div class="ri-info"><strong>Inversores patrimoniales</strong><span>38% de los perfiles</span></div><div class="ri-right green">38%</div></div>
-        <div class="row-item"><div class="ri-info"><strong>Dominiciliar sociedad</strong><span>55% lo solicitan</span></div><div class="ri-right">55%</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-// ── Tab nav
-const tabMap={'t-resumen':0,'t-props':1,'t-agenda':2,'t-keys':3,'t-coman':4,'t-docs':5,'t-analytics':6};
-function showTab(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  if(tabMap[id]!==undefined) document.querySelectorAll('.ntab')[tabMap[id]].classList.add('active');
-}
-
-// ── Sidebar active state
-document.querySelectorAll('.sb-item').forEach(i=>i.addEventListener('click',function(){
-  document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
-  this.classList.add('active');
-}));
-
-// ── Keys filter
-function filterKs(el,status){
-  document.querySelectorAll('.kstab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.querySelectorAll('.key-item').forEach(i=>{
-    i.style.display=(status==='all'||i.dataset.ks===status)?'flex':'none';
-  });
-}
-
-// ── Keys data (agencia side)
-const agKeysData={
-  md:{status:'active',statusLabel:'✓ Key activa · Dossier validado · 96% compatibilidad',cl:'MD',name:'Marie Dupont',sub:'No-residente FR · Compradora · Presupuesto: 600k–1M€',
-    prop:'Àtic Escaldes-Engordany · RT-2024-0847 · 850.000 €',
-    tags:['No-residente','Sociedad OK','Mascotas','Terraza'],
-    msgs:[
-      {t:'r',from:'Marie Dupont',text:'Buenos días — ¿qué documentación necesito para iniciar la compra? Soy residente fiscal en Francia.',time:'Lun 5 may · 11:32'},
-      {t:'s',text:'Necesitará: pasaporte vigente, últimos 3 extractos bancarios, declaración de origen de fondos y poder notarial si no puede asistir a la firma. El proceso completo tarda 4–6 semanas.',time:'Lun 5 may · 12:05'},
-      {t:'doc',name:'Checklist_Compra_NoResidente.pdf',size:'245 KB',time:'Lun 5 may · 12:07'},
-      {t:'r',from:'Marie Dupont',text:'Perfecto. ¿Podría organizar una visita esta semana?',time:'Mar 6 may · 09:45'},
-      {t:'s',text:'Disponibilidad el viernes 10 de mayo a las 10:30h o el lunes 13 a las 16:00h. ¿Cuál le va mejor?',time:'Mar 6 may · 10:24'},
-    ]
-  },
-  kw:{status:'active',statusLabel:'✓ Key activa · Visita confirmada vie 10 may 11:00h · 89% compatibilidad',cl:'KW',name:'Klaus Weber',sub:'Residente DE · Comprador · Familia · Presupuesto: hasta 1.5M€',
-    prop:'Chalet Ordino · RT-2024-0612 · 1.200.000 €',
-    tags:['Familia','4+ hab.','Jardín','Parking'],
-    msgs:[
-      {t:'r',from:'Klaus Weber',text:'Guten Tag. We are interested in the Chalet Ordino. Can we arrange a visit?',time:'Mar 6 may · 09:00'},
-      {t:'s',text:'Good morning! Of course. We have availability on Friday May 10th at 11:00h or Monday 13th at 16:00h. Which works best?',time:'Mar 6 may · 10:00'},
-      {t:'r',from:'Klaus Weber',text:'Friday 10th at 11h is perfect. We will be 4 people including the children.',time:'Mar 6 may · 11:30'},
-    ]
-  },
-  as:{status:'active',statusLabel:'✓ Key activa · 84% compatibilidad',cl:'AS',name:'Ahmed Saleh',sub:'No-residente UAE · Inversor patrimonial · Presupuesto: hasta 2M€',
-    prop:'Oficina Andorra la Vella · RT-2024-0788 · 890.000 €',
-    tags:['Inversor','Sociedad','No-residente','Off-market'],
-    msgs:[
-      {t:'r',from:'Ahmed Saleh',text:'Hello. Does this office property allow company domiciliation?',time:'Ayer · 14:00'},
-      {t:'s',text:'Yes, absolutely. The property is fully compatible with company domiciliation under Andorran law. The minimum capital for an SL is 3,000€.',time:'Ayer · 14:45'},
-    ]
-  },
-  lp:{status:'pending',statusLabel:'⏳ Dossier pendiente — falta documentación del cliente',cl:'LP',name:'Lena Petrova',sub:'No-residente RU · Compradora · Presupuesto: 400k–600k€',
-    prop:'Piso Escaldes-Engordany · RT-2024-0445 · 480.000 €',
-    tags:['No-residente','1 persona'],
-    msgs:[],
-    pending:{items:['📄 Falta: Declaración de origen de fondos','📄 Falta: NIE o documento alternativo','ℹ️ El cliente ha sido notificado. A la espera de que complete su perfil.']}
-  },
-  jm:{status:'pending',statusLabel:'⏳ Validación bancaria pendiente',cl:'JM',name:'Jean Martin',sub:'No-residente FR · Comprador · Presupuesto: 500k–700k€',
-    prop:'La Massana · RT-2024-0521 · 620.000 €',
-    tags:['No-residente','Familia pequeña'],
-    msgs:[],
-    pending:{items:['🏦 Pendiente: Validación de entidad bancaria','ℹ️ El cliente ha declarado CaixaBank. Pendiente de confirmación de fondos.']}
-  },
-  closed1:{status:'closed',statusLabel:'✓ Transacción cerrada — Abril 2025',cl:'RK',name:'Robert Kim',sub:'Residente AND · Comprador · Transacción cerrada',
-    prop:'Villa Ordino · RT-2024-0302 · 2.200.000 €',
-    tags:['Cerrada','Escriturada'],
-    msgs:[
-      {t:'s',text:'Estimado Robert, le confirmamos que la escritura ha sido firmada ante notario hoy. Enhorabuena por su nueva propiedad.',time:'15 abr · 11:00'},
-      {t:'r',from:'Robert Kim',text:'Muchas gracias a todo el equipo. Ha sido un proceso muy profesional.',time:'15 abr · 12:30'},
-    ]
-  }
-};
-
-function openAgKey(key,el){
-  document.querySelectorAll('.key-item').forEach(x=>x.classList.remove('active'));
-  el.classList.add('active');
-  const d=agKeysData[key];
-  const ca=document.getElementById('key-chat-area');
-  const isActive=d.status==='active';
-
-  let html=`<div class="kc-status ${d.status==='active'?'active-k':d.status==='pending'?'pending':''}">${d.statusLabel}</div>`;
-
-  html+=`<div class="kc-header">
-    <div class="kch-av cl">${d.cl}</div>
-    <div class="kch-info"><div class="cn">${d.name}</div><div class="cs">${d.prop}</div></div>
-    <div class="kch-actions">
-      ${isActive?`<button class="kcha">📅 Agendar visita</button><button class="kcha">📄 Generar doc. IA</button><button class="kcha primary">Validar dossier</button>`:''}
-      ${d.status==='pending'?`<button class="kcha">📤 Notificar cliente</button>`:''}
-      ${d.status==='closed'?`<button class="kcha">📁 Ver expediente</button>`:''}
-    </div>
-  </div>`;
-
-  // Client mini
-  const tagsHtml=d.tags.map(t=>`<span class="cm-tag">${t}</span>`).join('');
-  html+=`<div class="client-mini">
-    <div class="cm-av">${d.cl}</div>
-    <div><div class="cm-name">${d.name}</div><div class="cm-sub">${d.sub}</div><div class="cm-tags">${tagsHtml}</div></div>
-  </div>`;
-
-  // Pending card
-  if(d.pending){
-    const items=d.pending.items.map(i=>`<div style="padding:3px 0;font-size:11px;color:var(--sub)">${i}</div>`).join('');
-    html+=`<div style="margin:12px 18px;background:var(--ag-bg);border:1px solid var(--ag-bd);border-radius:9px;padding:13px">
-      <div style="font-weight:600;color:var(--ag);margin-bottom:8px;font-size:13px">⏳ Dossier incompleto</div>
-      ${items}
-      <button style="margin-top:10px;background:var(--ag-bg);color:var(--ag);border:1px solid var(--ag-bd);border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Recordar al cliente →</button>
-    </div>`;
-  }
-
-  // Messages
-  let msgsHtml='';
-  if(d.msgs&&d.msgs.length){
-    msgsHtml=d.msgs.map(m=>{
-      if(m.t==='doc') return `<div class="msg s"><div class="doc-bubble"><div class="di">📄</div><div><div class="dn">${m.name}</div><div class="ds">${m.size}</div></div></div><div class="msg-time" style="text-align:right">${m.time}</div></div>`;
-      return `<div class="msg ${m.t}">${m.t==='r'?`<div class="msg-from">${m.from}</div>`:''}
-        <div class="bubble">${m.text}</div>
-        <div class="msg-time">${m.time}</div></div>`;
-    }).join('');
-  }
-  html+=`<div class="kc-msgs">${msgsHtml}</div>`;
-
-  if(isActive){
-    html+=`<div class="kc-input">
-      <div class="kci-row"><textarea class="kci-inp" placeholder="Escribe un mensaje..."></textarea><button class="kci-send">↑</button></div>
-      <div class="kci-tools">
-        <button class="kci-tool">📎 Adjuntar</button>
-        <button class="kci-tool">📅 Agendar visita</button>
-        <button class="kci-tool">📑 Generar contrato</button>
-        <button class="kci-tool">🤖 Ayuda IA</button>
-        <button class="kci-tool">✅ Validar dossier</button>
-      </div>
-    </div>`;
-  }
-
-  ca.innerHTML=html;
-  const msgs=ca.querySelector('.kc-msgs');
-  if(msgs) msgs.scrollTop=msgs.scrollHeight;
-}
-
-// ── Properties list
-const propsData=[
-  {emoji:'🏡',name:'Àtic Escaldes-Engordany',ref:'RT-2024-0847',price:'850.000 €',type:'Venta',score:'8.4',views:142,status:'Activa',tags:['No-residente','Sociedad'],bg:'#0a1508'},
-  {emoji:'🏔️',name:'Chalet Ordino',ref:'RT-2024-0612',price:'1.200.000 €',type:'Venta',score:'9.1',views:98,status:'Activa',tags:['Familia','Co-mandato'],bg:'#0f0a04'},
-  {emoji:'🌆',name:'Estudio Canillo',ref:'RT-2024-0903',price:'2.800 €/mes',type:'Alquiler',score:'7.2',views:54,status:'Activa',tags:['Alquiler corto'],bg:'#04080f'},
-  {emoji:'🏘️',name:'La Massana',ref:'RT-2024-0521',price:'620.000 €',type:'Venta',score:'8.0',views:76,status:'Activa',tags:['No-residente','Terraza'],bg:'#08040f'},
-  {emoji:'🏰',name:'Villa Pas de la Casa',ref:'RT-2024-0721',price:'3.100.000 €',type:'Off-Market',score:'9.4',views:34,status:'Off-Market',tags:['Off-market','Inversor'],bg:'#100804'},
-];
-
-const pl=document.getElementById('prop-list');
-propsData.forEach((p,i)=>{
-  const el=document.createElement('div');
-  el.className='prop-list-item'+(i===0?' active':'');
-  el.innerHTML=`
-    <div class="pli-img" style="background:linear-gradient(135deg,${p.bg},#040404)">${p.emoji}</div>
-    <div class="pli-info">
-      <div class="pli-name">${p.name}</div>
-      <div class="pli-sub">${p.ref} · ${p.type}</div>
-      <div class="pli-tags">${p.tags.map(t=>`<span class="tag ag">${t}</span>`).join('')}</div>
-    </div>
-    <div class="pli-right">
-      <div class="pli-price">${p.price}</div>
-      <div class="pli-score">Score ${p.score}</div>
-      <div class="pli-views">${p.views} vistas</div>
-    </div>`;
-  el.onclick=()=>{
-    document.querySelectorAll('.prop-list-item').forEach(x=>x.classList.remove('active'));
-    el.classList.add('active');
-    showPropDetail(p);
-  };
-  pl.appendChild(el);
-  if(i===0) showPropDetail(p);
-});
-
-function showPropDetail(p){
-  document.getElementById('prop-detail').innerHTML=`
-    <div style="font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:14px">Ficha de propiedad</div>
-    <div style="width:100%;height:140px;background:linear-gradient(135deg,${p.bg},#040404);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:52px;margin-bottom:14px">${p.emoji}</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;margin-bottom:4px">${p.name}</div>
-    <div style="font-size:11px;color:var(--sub);margin-bottom:12px">${p.ref} · ${p.type}</div>
-    <div class="det-section">
-      <h5>Detalles</h5>
-      <div class="det-row"><span>Precio</span><span>${p.price}</span></div>
-      <div class="det-row"><span>Estado</span><span>${p.status}</span></div>
-      <div class="det-row"><span>Vistas este mes</span><span>${p.views}</span></div>
-      <div class="det-row"><span>Keys abiertas</span><span>4</span></div>
-      <div class="det-row"><span>Visitas realizadas</span><span>3</span></div>
-    </div>
-    <div class="det-section">
-      <h5>Investment Score IA</h5>
-      <div class="det-bar-item"><div class="det-bar-lbl"><span>Rendimiento</span><span>${p.score}/10</span></div><div class="det-bar-track"><div class="det-bar-fill" style="width:${parseFloat(p.score)*10}%"></div></div></div>
-      <div class="det-bar-item"><div class="det-bar-lbl"><span>Localización</span><span>8/10</span></div><div class="det-bar-track"><div class="det-bar-fill" style="width:80%"></div></div></div>
-      <div class="det-bar-item"><div class="det-bar-lbl"><span>Liquidez</span><span>7/10</span></div><div class="det-bar-track"><div class="det-bar-fill" style="width:70%"></div></div></div>
-    </div>
-    <div class="det-section">
-      <h5>Acciones rápidas</h5>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <button class="btn-primary" style="width:100%">Editar ficha</button>
-        <button class="btn-ghost" style="width:100%">Ver Keys activas (4)</button>
-        <button class="btn-ghost" style="width:100%">Gestionar co-mandato</button>
-        <button class="btn-ghost" style="width:100%">📊 Ver analytics</button>
-      </div>
-    </div>`;
-}
-
-// ── Chart bars
-const bars=[{h:40,l:'S1'},{h:65,l:'S2'},{h:55,l:'S3'},{h:80,l:'S4'},{h:90,l:'S5'}];
-const cb=document.getElementById('chart-bars');
-if(cb){
-  const wrap=document.createElement('div');wrap.style.cssText='display:flex;align-items:flex-end;gap:6px;flex:1;flex-direction:column;width:100%';
-  const barsRow=document.createElement('div');barsRow.style.cssText='display:flex;align-items:flex-end;gap:6px;flex:1;width:100%';
-  bars.forEach(b=>{
-    const col=document.createElement('div');col.style.cssText='display:flex;flex-direction:column;align-items:center;flex:1;height:100%';
-    const bar=document.createElement('div');bar.className='bar';bar.style.height=b.h+'%';
-    const lbl=document.createElement('div');lbl.className='bar-lbl';lbl.textContent=b.l;
-    col.appendChild(bar);col.appendChild(lbl);barsRow.appendChild(col);
-  });
-  cb.parentElement.appendChild(barsRow);
-  cb.remove();
-}
-sbAuth.auth.getSession().then(function(res){
-  if(res.data.session){
-    var name = res.data.session.user.user_metadata.full_name || res.data.session.user.email;
-    var initials = name.split(' ').map(function(n){return n[0]}).join('').substring(0,2).toUpperCase();
-    var av = document.getElementById('user-avatar');
-    var un = document.getElementById('user-name');
-if(un) un.textContent = name.split(' ')[0];
-    if(av) av.textContent = initials;
-  }
-});
-document.getElementById('btn-logout').addEventListener('click', function(){
-  sbAuth.auth.signOut().then(function(){
-    window.location.href='login.html';
-  });
-});
-function openModal(id){var el=document.getElementById(id);if(el)el.style.display='flex';}
-function closeModal(id){var el=document.getElementById(id);if(el)el.style.display='none';}
-</script>
-  <div class="modal-overlay" id="modal-publish">
+<div class="modal-overlay" id="modal-publish">
   <div class="modal">
-    <div class="modal-close" onclick="closeModal('modal-publish')">x</div>
-    <h2>Nueva propiedad</h2>
-    <p class="modal-p">Rellena los datos y publica en Realthors</p>
-    <div class="frow">
-      <label>Título</label>
-      <input class="finp" id="pub-title" placeholder="Ej: Àtic amb terrassa a Escaldes">
-    </div>
+    <div class="modal-close" onclick="closeModal('modal-publish')">✕</div>
+    <h2>Publicar propiedad</h2>
+    <p class="modal-sub">Rellena los datos y publica en Realthors</p>
+    <div class="frow"><label>Título</label><input class="finp" id="pub-title" placeholder="Ej: Àtic amb terrassa a Escaldes"></div>
     <div class="frow2">
       <div><label>Precio (€)</label><input class="finp" id="pub-price" placeholder="450000" type="number"></div>
-      <div><label>Tipo</label><select class="finp" id="pub-type"><option>Apartamento</option><option>Casa</option><option>Villa</option><option>Oficina</option><option>Local</option><option>Solar</option></select></div>
+      <div><label>Tipo</label>
+        <select class="finp" id="pub-type">
+          <option>Apartamento</option><option>Casa</option><option>Oficina</option>
+          <option>Local</option><option>Parking</option><option>Solar</option>
+        </select>
+      </div>
     </div>
     <div class="frow2">
-      <div><label>Operación</label><select class="finp" id="pub-op"><option>Venta</option><option>Alquiler</option><option>Venta + Alquiler</option></select></div>
+      <div><label>Operación</label>
+        <select class="finp" id="pub-op"><option>Venta</option><option>Alquiler</option><option>Venta + Alquiler</option></select>
+      </div>
       <div><label>m²</label><input class="finp" id="pub-sqm" placeholder="95" type="number"></div>
     </div>
-    <div class="frow">
-      <label>Ubicación</label>
-      <input class="finp" id="pub-location" placeholder="Escaldes-Engordany, Andorra">
+    <div class="frow3">
+      <div><label>Habitaciones</label><input class="finp" id="pub-beds" placeholder="3" type="number"></div>
+      <div><label>Baños</label><input class="finp" id="pub-baths" placeholder="2" type="number"></div>
+      <div><label>Año construcción</label><input class="finp" id="pub-year" placeholder="2005" type="number"></div>
     </div>
-    <div class="frow">
-      <label>País</label>
-      <input class="finp" id="pub-country" placeholder="Andorra">
+    <div class="frow"><label>Ubicación</label>
+      <select class="finp" id="pub-location">
+        <option value="">Selecciona parroquia</option>
+        <option>Andorra la Vella</option><option>Escaldes-Engordany</option>
+        <option>Encamp</option><option>La Massana</option>
+        <option>Canillo</option><option>Ordino</option><option>Sant Julià de Lòria</option>
+      </select>
     </div>
-    <div class="frow">
-      <label>Descripción</label>
+    <div class="frow2">
+      <div><label>Certificado energético</label>
+        <select class="finp" id="pub-energy"><option value="">—</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option></select>
+      </div>
+      <div><label>Visibilidad</label>
+        <select class="finp" id="pub-visibility"><option value="todos">Todos</option><option value="verificados">Solo verificados</option></select>
+      </div>
+    </div>
+    <div class="frow"><label>Descripción</label>
       <textarea class="finp" id="pub-desc" placeholder="Describe la propiedad..." style="height:80px;resize:none"></textarea>
+    </div>
+    <span class="sep">Características</span>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="pub-terrace"> Terraza/Balcón</label>
+      <label class="check-item"><input type="checkbox" id="pub-parking"> Parking</label>
+      <label class="check-item"><input type="checkbox" id="pub-pool"> Piscina</label>
+      <label class="check-item"><input type="checkbox" id="pub-elevator"> Ascensor</label>
+      <label class="check-item"><input type="checkbox" id="pub-storage"> Trastero</label>
+      <label class="check-item"><input type="checkbox" id="pub-furnished"> Amueblado</label>
+      <label class="check-item"><input type="checkbox" id="pub-pets"> Acepta mascotas</label>
+    </div>
+    <span class="sep">Condiciones legales</span>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="pub-nonresident"> No-residente OK</label>
+      <label class="check-item"><input type="checkbox" id="pub-society"> Admite sociedad</label>
+      <label class="check-item"><input type="checkbox" id="pub-tourist"> Uso turístico</label>
     </div>
     <div class="msg error" id="pub-error"></div>
     <div class="msg success" id="pub-success"></div>
     <button class="modal-confirm" onclick="publishProperty()">Publicar propiedad</button>
   </div>
 </div>
-  </body>
+
+</body>
 </html>
