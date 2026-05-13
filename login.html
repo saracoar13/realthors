@@ -138,6 +138,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
         <div class="frow"><label>Email</label><input class="finp" type="email" id="login-email" placeholder="tu@email.com"></div>
         <div class="frow"><label>Contraseña</label><input class="finp" type="password" id="login-pass" placeholder="••••••••"></div>
         <button class="submit-btn" id="login-btn" onclick="doLogin()">Entrar</button>
+        <div style="text-align:right;margin-top:6px"><span onclick="resetPassword()" style="font-size:11px;color:var(--sub);cursor:pointer;text-decoration:underline">¿Olvidaste tu contraseña?</span></div>
         <div class="switch-mode">¿No tienes cuenta? <span onclick="switchMode('register')">Crear cuenta gratis</span></div>
       </div>
 
@@ -219,7 +220,13 @@ function redirect(profile){
   else if(profile==='inversor') window.location.href='inversor.html';
   else window.location.href='cliente.html';
 }
-
+async function resetPassword(){
+  var email=document.getElementById('login-email').value.trim();
+  if(!email){alert('Introduce tu email primero.');return;}
+  var {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://realthors.com/login.html'});
+  if(error){alert('Error: '+error.message);}
+  else{alert('Te hemos enviado un email para restablecer tu contraseña.');}
+}
 async function doLogin(){
   var email=document.getElementById('login-email').value.trim();
   var pass=document.getElementById('login-pass').value;
