@@ -20,8 +20,8 @@ sb.auth.getSession().then(async function(res){
   var initials=name.split(' ').map(function(n){return n[0]}).join('').substring(0,2).toUpperCase();
   var av=document.getElementById('user-avatar');if(av)av.textContent=initials;
   var un=document.getElementById('user-name');if(un)un.textContent=name.split(' ')[0];
-  var {data}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
-  if(data){userProfile=data;populateProfile(data);}
+  var res2=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+  if(res2.data){userProfile=res2.data;populateProfile(res2.data);}
   loadFeed();
 });
 
@@ -34,13 +34,18 @@ function showTab(id){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});
   document.querySelectorAll('.ntab').forEach(function(t){t.classList.remove('active')});
   var el=document.getElementById(id);if(el)el.classList.add('active');
-  var map={'t-home':0,'t-search':1,'t-keys':2,'t-profile':3};
-  if(map[id]!==undefined)document.querySelectorAll('.ntab')[map[id]].classList.add('active');
+  var tabs=['t-home','t-search','t-keys','t-profile'];
+  var idx=tabs.indexOf(id);
+  var ntabs=document.querySelectorAll('.ntab');
+  if(idx>=0&&ntabs[idx])ntabs[idx].classList.add('active');
   if(id==='t-search')loadSearch();
   if(id==='t-keys')loadKeys();
+  if(id==='t-profile')updateProfileSummary();
 }
 
-function propEmoji(type){return type==='Villa'?'🏰':type==='Casa'?'🏡':type==='Oficina'?'🏢':type==='Local'?'🏪':type==='Solar'?'🌳':'🏠';}
+function propEmoji(type){
+  return type==='Villa'?'🏰':type==='Casa'?'🏡':type==='Oficina'?'🏢':type==='Local'?'🏪':type==='Solar'?'🌳':'🏠';
+}
 
 function propCard(p){
   var emoji=propEmoji(p.type);
@@ -56,21 +61,18 @@ function propCard(p){
   if(p.surface)details+=p.surface+'m²';
   if(p.bedrooms)details+=(details?' · ':'')+p.bedrooms+' hab.';
   if(p.bathrooms)details+=(details?' · ':'')+p.bathrooms+' baños';
-  return '<div class="feed-card">'+
-    '<div class="fc-img">'+
-    '<span style="font-size:52px">'+emoji+'</span>'+
-    (p.is_offmarket?'<span class="fc-badge-om">Off-Market</span>':'')+
-    '</div>'+
-    '<div class="fc-body">'+
-    '<div class="fc-title">'+p.title+'</div>'+
-    '<div class="fc-price">'+Number(p.price).toLocaleString('es')+'€'+(p.operation==='Alquiler'?'/mes':'')+'</div>'+
-    '<div class="fc-loc">'+p.location+(details?' · '+details:'')+'</div>'+
-    (tags?'<div class="fc-tags">'+tags+'</div>':'')+
-    (p.description?'<div class="fc-desc">'+p.description.substring(0,120)+(p.description.length>120?'...':'')+'</div>':'')+
-    '<div class="fc-actions">'+
-    '<button class="fc-btn">♡ Guardar</button>'+
-    '<button class="fc-btn primary" onclick="requestKey(\''+p.id+'\',\''+p.owner_id+'\')">Solicitar Key</button>'+
-    '</div></div></div>';
+  return '<div class="feed-card">'
+    +'<div class="fc-img"><span style="font-size:52px">'+emoji+'</span>'+(p.is_offmarket?'<span class="fc-badge-om">Off-Market</span>':'')+'</div>'
+    +'<div class="fc-body">'
+    +'<div class="fc-title">'+p.title+'</div>'
+    +'<div class="fc-price">'+Number(p.price).toLocaleString('es')+'€'+(p.operation==='Alquiler'?'/mes':'')+'</div>'
+    +'<div class="fc-loc">'+p.location+(details?' · '+details:'')+'</div>'
+    +(tags?'<div class="fc-tags">'+tags+'</div>':'')
+    +(p.description?'<div class="fc-desc">'+p.description.substring(0,120)+(p.description.length>120?'...':'')+'</div>':'')
+    +'<div class="fc-actions">'
+    +'<button class="fc-btn">♡ Guardar</button>'
+    +'<button class="fc-btn primary" onclick="requestKey(\''+p.id+'\',\''+p.owner_id+'\')">Solicitar Key</button>'
+    +'</div></div></div>';
 }
 
 async function loadFeed(){
@@ -80,26 +82,27 @@ async function loadFeed(){
   if(userProfile){
     if(userProfile.search_operation)query=query.eq('operation',userProfile.search_operation);
     if(userProfile.max_price)query=query.lte('price',parseFloat(userProfile.max_price));
-    if(userProfile.min_beds)query=query.gte('bedrooms',userProfile.min_beds);
+    if(userProfile.min_beds)query=query.gte('bedrooms',parseInt(userProfile.min_beds));
     if(userProfile.needs_non_resident)query=query.eq('non_resident_ok',true);
     if(userProfile.needs_society)query=query.eq('allows_society',true);
   }
-  var {data,error}=await query.order('created_at',{ascending:false});
-  if(error||!data||data.length===0){
+  var result=await query.order('created_at',{ascending:false});
+  var data=result.data;
+  if(!data||data.length===0){
     fc.innerHTML='<div class="empty-state"><div style="font-size:40px;margin-bottom:12px">🏠</div><p>No hay propiedades disponibles que encajen con tu perfil.</p><p style="margin-top:8px;font-size:11px">Ajusta tus preferencias en Mi perfil o vuelve más tarde.</p></div>';
+    var cnt=document.getElementById('feed-count');if(cnt)cnt.textContent='0 propiedades encajan con tu búsqueda';
     return;
   }
   fc.innerHTML='';
   data.forEach(function(p){fc.innerHTML+=propCard(p);});
   var cnt=document.getElementById('feed-count');if(cnt)cnt.textContent=data.length+' propiedades encajan con tu búsqueda';
-  updateSidebar();
 }
 
 async function loadSearch(){
   var gc=document.getElementById('search-results');if(!gc)return;
   gc.innerHTML='<div class="loading">Cargando...</div>';
-  var {data}=await sb.from('properties').select('*').eq('status','activa').order('created_at',{ascending:false});
-  renderSearchResults(data||[]);
+  var result=await sb.from('properties').select('*').eq('status','activa').order('created_at',{ascending:false});
+  renderSearchResults(result.data||[]);
 }
 
 function renderSearchResults(data){
@@ -139,8 +142,8 @@ async function applyFilters(){
   if(parking)query=query.eq('has_parking',true);
   if(pool)query=query.eq('has_pool',true);
   if(pets)query=query.eq('pets_allowed',true);
-  var {data}=await query.order('created_at',{ascending:false});
-  var filtered=data||[];
+  var result=await query.order('created_at',{ascending:false});
+  var filtered=result.data||[];
   if(loc)filtered=filtered.filter(function(p){return p.location&&p.location.toLowerCase().includes(loc);});
   renderSearchResults(filtered);
 }
@@ -152,16 +155,17 @@ function resetFilters(){
 }
 
 async function requestKey(propId,ownerId){
-  if(!currentUser){alert('Debes iniciar sesión.');return;}
-  var {error}=await sb.from('keys').insert({property_id:propId,requester_id:currentUser.id,owner_id:ownerId,status:'waiting'});
-  if(error){alert('Error: '+error.message);}
+  if(!currentUser)return;
+  var result=await sb.from('keys').insert({property_id:propId,requester_id:currentUser.id,owner_id:ownerId,status:'waiting'});
+  if(result.error){alert('Error: '+result.error.message);}
   else{alert('Key solicitada. La agencia revisará tu dossier.');}
 }
 
 async function loadKeys(){
   var kl=document.getElementById('keys-list');if(!kl||!currentUser)return;
   kl.innerHTML='<div class="loading">Cargando Keys...</div>';
-  var {data}=await sb.from('keys').select('*, properties(title,location,price,type)').eq('requester_id',currentUser.id).order('created_at',{ascending:false});
+  var result=await sb.from('keys').select('*, properties(title,location,price,type)').eq('requester_id',currentUser.id).order('created_at',{ascending:false});
+  var data=result.data;
   if(!data||data.length===0){kl.innerHTML='<div class="empty-state">No tienes Keys activas aún.</div>';return;}
   kl.innerHTML='';
   data.forEach(function(k){
@@ -178,13 +182,13 @@ async function loadKeys(){
 function openKeyDetail(k,p){
   var kd=document.getElementById('key-detail');if(!kd)return;
   var stClass=k.status==='unlocked'?'u':k.status==='waiting'?'w':'l';
-  var stLabel=k.status==='unlocked'?'🔓 Unlocked — Conversación activa':k.status==='waiting'?'⏳ Waiting — La agencia está revisando tu dossier':'🔒 Locked — Key rechazada';
-  kd.innerHTML='<div class="kd-header '+stClass+'">'+stLabel+'</div><div style="padding:16px"><div style="font-family:\'Cormorant Garamond\',serif;font-size:18px;font-weight:500;margin-bottom:4px">'+(p.title||'Propiedad')+'</div><div style="font-size:12px;color:var(--sub);margin-bottom:16px">'+(p.location||'')+'</div>'+(k.status==='unlocked'?'<div class="kd-placeholder"><div style="font-size:28px;margin-bottom:8px">💬</div><p>Chat disponible próximamente</p></div>':k.status==='waiting'?'<div class="kd-placeholder"><div style="font-size:28px;margin-bottom:8px">⏳</div><p>Dossier en revisión</p><p style="font-size:11px;margin-top:4px">La agencia revisará tu perfil antes de abrir la conversación.</p></div>':'<div class="kd-placeholder"><div style="font-size:28px;margin-bottom:8px">🔒</div><p>Key rechazada</p>'+(k.lock_reason?'<p style="font-size:11px;margin-top:4px">Motivo: '+k.lock_reason+'</p>':'')+'</div>')+'</div>';
+  var stLabel=k.status==='unlocked'?'🔓 Unlocked — Conversación activa':k.status==='waiting'?'⏳ Waiting — Revisando tu dossier':'🔒 Locked — Key rechazada';
+  kd.innerHTML='<div class="kd-header '+stClass+'">'+stLabel+'</div><div style="padding:16px"><div style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500;margin-bottom:4px">'+(p.title||'Propiedad')+'</div><div style="font-size:12px;color:var(--sub);margin-bottom:16px">'+(p.location||'')+'</div>'+(k.status==='unlocked'?'<div class="kd-placeholder"><div style="font-size:28px;margin-bottom:8px">💬</div><p>Chat disponible próximamente</p></div>':k.status==='waiting'?'<div class="kd-placeholder"><div style="font-size:28px;margin-bottom:8px">⏳</div><p>Dossier en revisión</p></div>':'<div class="kd-placeholder"><div style="font-size:28px;margin-bottom:8px">🔒</div><p>Key rechazada</p></div>')+'</div>';
 }
 
 function populateProfile(data){
-  var fields={'prof-name':data.full_name,'prof-phone':data.phone,'prof-country':data.country,'pref-op':data.search_operation,'pref-price':data.max_price,'pref-beds':data.min_beds,'pref-zones':data.preferred_zones};
-  Object.keys(fields).forEach(function(id){var el=document.getElementById(id);if(el&&fields[id]!=null)el.value=fields[id];});
+  var map={'prof-name':data.full_name,'prof-phone':data.phone,'prof-country':data.country,'pref-op':data.search_operation,'pref-price':data.max_price,'pref-beds':data.min_beds,'pref-zones':data.preferred_zones};
+  Object.keys(map).forEach(function(id){var el=document.getElementById(id);if(el&&map[id]!=null)el.value=map[id];});
   if(data.needs_non_resident){var el=document.getElementById('pref-nonresident');if(el)el.checked=true;}
   if(data.needs_society){var el=document.getElementById('pref-society');if(el)el.checked=true;}
   if(data.needs_tourist){var el=document.getElementById('pref-tourist');if(el)el.checked=true;}
@@ -192,41 +196,35 @@ function populateProfile(data){
 
 async function saveProfile(){
   if(!currentUser)return;
-  var {error}=await sb.from('profiles').update({
-    full_name:document.getElementById('prof-name')?document.getElementById('prof-name').value:null,
-    phone:document.getElementById('prof-phone')?document.getElementById('prof-phone').value:null,
-    country:document.getElementById('prof-country')?document.getElementById('prof-country').value:null,
+  var updates={
+    full_name:document.getElementById('prof-name')?document.getElementById('prof-name').value||null:null,
+    phone:document.getElementById('prof-phone')?document.getElementById('prof-phone').value||null:null,
+    country:document.getElementById('prof-country')?document.getElementById('prof-country').value||null:null,
     search_operation:document.getElementById('pref-op')?document.getElementById('pref-op').value||null:null,
     max_price:document.getElementById('pref-price')?parseFloat(document.getElementById('pref-price').value)||null:null,
     min_beds:document.getElementById('pref-beds')?parseInt(document.getElementById('pref-beds').value)||null:null,
     preferred_zones:document.getElementById('pref-zones')?document.getElementById('pref-zones').value||null:null,
     needs_non_resident:document.getElementById('pref-nonresident')?document.getElementById('pref-nonresident').checked:false,
     needs_society:document.getElementById('pref-society')?document.getElementById('pref-society').checked:false,
-    needs_tourist:document.getElementById('pref-tourist')?document.getElementById('pref-tourist').checked:false,
-  }).eq('id',currentUser.id);
-if(error){alert('Error: '+error.message);}
+    needs_tourist:document.getElementById('pref-tourist')?document.getElementById('pref-tourist').checked:false
+  };
+  var result=await sb.from('profiles').update(updates).eq('id',currentUser.id);
+  if(result.error){alert('Error: '+result.error.message);}
   else{
     alert('Perfil guardado.');
-    var {data}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
-    if(data){
-      userProfile=data;
-      showTab('t-home');
-      await loadFeed();
-    }
+    var res2=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+    if(res2.data){userProfile=res2.data;showTab('t-home');await loadFeed();}
   }
 }
 
-function updateSidebar(){
+function updateProfileSummary(){
   if(!userProfile)return;
   var op=document.getElementById('sum-op');if(op)op.textContent=userProfile.search_operation||'Todas';
   var price=document.getElementById('sum-price');if(price)price.textContent=userProfile.max_price?Number(userProfile.max_price).toLocaleString('es')+'€':'Sin límite';
   var beds=document.getElementById('sum-beds');if(beds)beds.textContent=userProfile.min_beds?userProfile.min_beds+'+':'Cualquiera';
   var zones=document.getElementById('sum-zones');if(zones)zones.textContent=userProfile.preferred_zones||'Cualquier zona';
-  var hlop=document.getElementById('hl-op');if(hlop)hlop.innerHTML='Operación: <b>'+(userProfile.search_operation||'Todas')+'</b>';
-  var hlprice=document.getElementById('hl-price');if(hlprice)hlprice.innerHTML='Precio máx: <b>'+(userProfile.max_price?Number(userProfile.max_price).toLocaleString('es')+'€':'Sin límite')+'</b>';
-  var hlbeds=document.getElementById('hl-beds');if(hlbeds)hlbeds.innerHTML='Habitaciones: <b>'+(userProfile.min_beds?userProfile.min_beds+'+':'Cualquiera')+'</b>';
-  var hlzones=document.getElementById('hl-zones');if(hlzones)hlzones.innerHTML='Zonas: <b>'+(userProfile.preferred_zones||'Cualquier zona')+'</b>';
-  var hlname=document.getElementById('hl-name');if(hlname&&userProfile.full_name)hlname.textContent=userProfile.full_name;
+  var nr=document.getElementById('sum-nonresident');if(nr)nr.textContent=userProfile.needs_non_resident?'Sí':'No';
+  var soc=document.getElementById('sum-society');if(soc)soc.textContent=userProfile.needs_society?'Sí':'No';
 }
 </script>
 <style>
@@ -258,24 +256,7 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
 .screen{display:none;position:fixed;top:54px;left:0;right:0;bottom:0;overflow:hidden}
 .screen.active{display:block}
 #t-home{background:var(--bg)}
-.home-layout{display:grid;grid-template-columns:1fr;
-.home-main{overflow-y:auto;height:calc(100vh - 54px);padding:20px 24px}
-.hl-av{width:44px;height:44px;border-radius:50%;background:var(--cl-bg);border:2px solid var(--cl-bd);display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:10px}
-.hl-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:500;margin-bottom:2px}
-.hl-sub{font-size:11px;color:var(--sub);margin-bottom:12px}
-.prog-wrap .pl{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-bottom:3px}
-.prog-wrap .pl b{color:var(--cl)}
-.prog-track{height:3px;background:var(--s3);border-radius:2px;overflow:hidden;margin-bottom:14px}
-.prog-fill{height:100%;background:var(--cl);border-radius:2px}
-.sep{display:block;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:12px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
-.hl-row{display:flex;align-items:flex-start;gap:6px;font-size:11px;color:var(--sub);padding:3px 0}
-.hl-dot{width:4px;height:4px;border-radius:50%;background:var(--cl);flex-shrink:0;margin-top:4px}
-.hl-row b{color:var(--text);font-weight:500}
-.key-mini{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;background:var(--s2);border:1px solid var(--border);margin-bottom:5px;cursor:pointer;font-size:11px}
-.key-mini:hover{border-color:var(--border2)}
-.km-icon{font-size:14px}.km-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.km-status{font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px}
-.km-status.active{background:var(--inv-bg);color:var(--inv)}.km-status.pending{background:var(--ag-bg);color:var(--ag)}.km-status.locked{background:var(--red-bg);color:var(--red)}
+.home-main{overflow-y:auto;height:calc(100vh - 54px);padding:20px 24px;max-width:900px;margin:0 auto}
 .feed-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
 .feed-hd h2{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400}
 .feed-hd p{font-size:11px;color:var(--sub);margin-top:2px}
@@ -283,6 +264,42 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
 .ff{padding:4px 11px;border-radius:12px;font-size:11px;font-weight:500;border:1px solid var(--border2);cursor:pointer;color:var(--sub);background:transparent;transition:all .18s}
 .ff.on{background:var(--cl-bg);color:var(--cl);border-color:var(--cl-bd)}
 .ff:hover:not(.on){color:var(--text)}
+#t-search{background:var(--bg)}
+.search-layout{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 54px)}
+.filters-col{background:var(--s1);border-right:1px solid var(--border);padding:18px;overflow-y:auto;height:100%}
+.filters-col h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;margin-bottom:14px}
+.results-col{padding:20px 24px;overflow-y:auto;height:100%}
+.results-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.results-hd h2{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400}
+.search-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+#t-keys{background:var(--bg)}
+.keys-layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 54px)}
+.keys-col{background:var(--s1);border-right:1px solid var(--border);padding:18px;overflow-y:auto;height:100%}
+.keys-col h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;margin-bottom:14px}
+.keys-detail{overflow-y:auto;height:100%}
+.key-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .18s}
+.key-item:hover{background:var(--s2)}
+.ki-emoji{font-size:22px;flex-shrink:0}
+.ki-info{flex:1;min-width:0}
+.ki-title{font-size:12px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ki-sub{font-size:11px;color:var(--sub)}
+.ki-status{font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;flex-shrink:0}
+.ki-status.u{background:var(--inv-bg);color:var(--inv)}
+.ki-status.w{background:var(--ag-bg);color:var(--ag)}
+.ki-status.l{background:var(--red-bg);color:var(--red)}
+.kd-header{padding:10px 16px;font-size:12px;font-weight:500}
+.kd-header.u{background:var(--inv-bg);color:var(--inv);border-bottom:1px solid var(--inv-bd)}
+.kd-header.w{background:var(--ag-bg);color:var(--ag);border-bottom:1px solid var(--ag-bd)}
+.kd-header.l{background:var(--red-bg);color:var(--red);border-bottom:1px solid var(--red-bd)}
+.kd-placeholder{padding:40px;text-align:center;color:var(--dim);font-size:13px;line-height:1.7}
+#t-profile{background:var(--bg)}
+.profile-layout{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 54px)}
+.prof-left{padding:24px;overflow-y:auto;height:100%}
+.prof-right{background:var(--s1);border-left:1px solid var(--border);padding:24px;overflow-y:auto;height:100%}
+.ph-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.ph-av{width:48px;height:48px;border-radius:50%;background:var(--cl-bg);border:2px solid var(--cl-bd);display:flex;align-items:center;justify-content:center;font-size:18px}
+.ph-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;margin-bottom:2px}
+.ph-sub{font-size:11px;color:var(--sub)}
 .feed-card{background:var(--s1);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:14px;transition:border-color .2s}
 .feed-card:hover{border-color:var(--cl-bd)}
 .fc-img{height:150px;display:flex;align-items:center;justify-content:center;position:relative;background:linear-gradient(135deg,#06080f,#040404)}
@@ -299,55 +316,25 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
 .fc-btn.primary{background:var(--cl);color:#fff;border-color:var(--cl);font-weight:600}
 .fc-btn.primary:hover{filter:brightness(1.1)}
 .tag{font-size:9px;padding:2px 7px;border-radius:7px;font-weight:600}
-.tag.cl{background:var(--cl-bg);color:var(--cl)}.tag.dim{background:var(--s3);color:var(--sub)}
+.tag.cl{background:var(--cl-bg);color:var(--cl)}
+.tag.dim{background:var(--s3);color:var(--sub)}
 .loading{padding:30px;text-align:center;color:var(--dim);font-size:12px}
 .empty-state{padding:40px;text-align:center;color:var(--dim);font-size:13px;line-height:1.7}
-#t-search{background:var(--bg);height:calc(100vh - 54px)}
-.search-layout{display:grid;grid-template-columns:280px 1fr;height:calc(100vh - 54px)}
-.filters-col{background:var(--s1);border-right:1px solid var(--border);padding:18px;overflow-y:auto;height:100%}
-.filters-col h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;margin-bottom:14px}
-.results-col{padding:20px 24px;overflow-y:auto;height:100%}
-.results-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.results-hd h2{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400}
+.sep{display:block;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:12px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
 .frow{margin-bottom:12px}
 .frow label{display:block;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
 .frow2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .finp{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color .18s}
-.finp:focus{border-color:var(--cl)}.finp option{background:var(--s2)}
+.finp:focus{border-color:var(--cl)}
+.finp option{background:var(--s2)}
 .check-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px}
 .check-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sub);cursor:pointer}
 .check-item input{cursor:pointer;accent-color:var(--cl)}
-.filter-btn{width:100%;padding:9px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border:none;background:var(--cl);color:#fff;margin-bottom:6px}
+.filter-btn{width:100%;padding:9px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border:none;background:var(--cl);color:#fff;margin-bottom:6px;transition:filter .18s}
 .filter-btn:hover{filter:brightness(1.1)}
 .reset-btn{width:100%;padding:8px;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid var(--border2);background:transparent;color:var(--sub)}
 .reset-btn:hover{color:var(--text)}
-.search-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-#t-keys{background:var(--bg)}
-.keys-layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 54px)}
-.keys-col{background:var(--s1);border-right:1px solid var(--border);padding:18px;overflow-y:auto;height:100%}
-.keys-col h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;margin-bottom:14px}
-.keys-detail{overflow-y:auto;height:100%}
-.key-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .18s}
-.key-item:hover{background:var(--s2)}
-.ki-emoji{font-size:22px;flex-shrink:0}.ki-info{flex:1;min-width:0}
-.ki-title{font-size:12px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ki-sub{font-size:11px;color:var(--sub)}
-.ki-status{font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;flex-shrink:0}
-.ki-status.u{background:var(--inv-bg);color:var(--inv)}.ki-status.w{background:var(--ag-bg);color:var(--ag)}.ki-status.l{background:var(--red-bg);color:var(--red)}
-.kd-header{padding:10px 16px;font-size:12px;font-weight:500}
-.kd-header.u{background:var(--inv-bg);color:var(--inv);border-bottom:1px solid var(--inv-bd)}
-.kd-header.w{background:var(--ag-bg);color:var(--ag);border-bottom:1px solid var(--ag-bd)}
-.kd-header.l{background:var(--red-bg);color:var(--red);border-bottom:1px solid var(--red-bd)}
-.kd-placeholder{padding:40px;text-align:center;color:var(--dim);font-size:13px;line-height:1.7}
-#t-profile{background:var(--bg)}
-.profile-layout{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 54px)}
-.prof-left{padding:24px;overflow-y:auto;height:100%}
-.prof-right{background:var(--s1);border-left:1px solid var(--border);padding:24px;overflow-y:auto;height:100%}
-.ph-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.ph-av{width:48px;height:48px;border-radius:50%;background:var(--cl-bg);border:2px solid var(--cl-bd);display:flex;align-items:center;justify-content:center;font-size:18px}
-.ph-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;margin-bottom:2px}
-.ph-sub{font-size:11px;color:var(--sub)}
-.save-btn{width:100%;background:var(--cl);color:#fff;border:none;border-radius:7px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-top:6px}
+.save-btn{width:100%;background:var(--cl);color:#fff;border:none;border-radius:7px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-top:6px;transition:filter .18s}
 .save-btn:hover{filter:brightness(1.1)}
 .doc-ok{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;margin-bottom:5px;font-size:11px}
 .doc-ok .di{font-size:14px}.doc-ok .dn{flex:1;font-weight:500}.doc-ok .ds{font-size:10px;color:var(--sub);font-weight:600}
@@ -382,20 +369,20 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
     <button class="btn-logout" id="btn-logout">Cerrar sesión</button>
   </div>
 </nav>
+
 <div id="t-home" class="screen active">
-  <div class="home-layout">
-          <div class="home-main">
-      <div class="feed-hd">
-        <div><h2>Propiedades para ti</h2><p id="feed-count">Cargando...</p></div>
-      </div>
-      <div class="feed-filters">
-        <div class="ff on" onclick="loadFeed()">Todas</div>
-        <div class="ff" onclick="filterOp(this,'Venta')">Venta</div>
-        <div class="ff" onclick="filterOp(this,'Alquiler')">Alquiler</div>
-      </div>
-      <div id="feed-cards"></div>
+  <div class="home-main">
+    <div class="feed-hd">
+      <div><h2>Propiedades para ti</h2><p id="feed-count">Cargando...</p></div>
     </div>
+    <div class="feed-filters">
+      <div class="ff on" onclick="filterFeed(this,'')">Todas</div>
+      <div class="ff" onclick="filterFeed(this,'Venta')">Venta</div>
+      <div class="ff" onclick="filterFeed(this,'Alquiler')">Alquiler</div>
+    </div>
+    <div id="feed-cards"></div>
   </div>
+</div>
 
 <div id="t-search" class="screen">
   <div class="search-layout">
@@ -506,24 +493,19 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
         <div class="pref-row"><span>⏳ Waiting</span><span id="sum-waiting" style="color:var(--ag)">0</span></div>
         <div class="pref-row"><span>🔒 Locked</span><span id="sum-locked" style="color:var(--red)">0</span></div>
       </div>
-      <span class="sep">Asistente jurídico IA</span>
-      <div class="pref-card">
-        <h4>Próximamente</h4>
-        <div style="font-size:11px;color:var(--sub);line-height:1.7">Consulta requisitos legales, fiscales y administrativos para tu compra o alquiler.</div>
-      </div>
     </div>
   </div>
 </div>
 
 <script>
-function filterOp(el,op){
+function filterFeed(el,op){
   document.querySelectorAll('.feed-filters .ff').forEach(function(f){f.classList.remove('on')});
   el.classList.add('on');
+  if(!op){loadFeed();return;}
   var fc=document.getElementById('feed-cards');if(!fc)return;
   fc.innerHTML='<div class="loading">Filtrando...</div>';
-  var query=sb.from('properties').select('*').eq('status','activa').eq('operation',op);
-  query.order('created_at',{ascending:false}).then(function(res){
-    if(!res.data||res.data.length===0){fc.innerHTML='<div class="empty-state">No hay propiedades de '+op+' disponibles.</div>';return;}
+  sb.from('properties').select('*').eq('status','activa').eq('operation',op).order('created_at',{ascending:false}).then(function(res){
+    if(!res.data||res.data.length===0){fc.innerHTML='<div class="empty-state">No hay propiedades de '+op+'.</div>';return;}
     fc.innerHTML='';res.data.forEach(function(p){fc.innerHTML+=propCard(p);});
   });
 }
