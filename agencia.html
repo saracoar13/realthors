@@ -11,7 +11,7 @@ const SURL='https://zftxrycmzvsebuqwhyis.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmdHhyeWNtenZzZWJ1cXdoeWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNDUzNDEsImV4cCI6MjA5MzgyMTM0MX0.OSh4bP5Ypi0Wsv-d5c2fi-bphnhhmLJoU-yN5cc1AGA';
 const sb=supabase.createClient(SURL,SKEY);
 let currentUser=null;
-let agencyProfile=null;
+let currentKeyFilter='all';
 
 sb.auth.getSession().then(async function(res){
   if(!res.data.session){window.location.href='login.html';return;}
@@ -20,8 +20,6 @@ sb.auth.getSession().then(async function(res){
   var initials=name.split(' ').map(function(n){return n[0]}).join('').substring(0,2).toUpperCase();
   var av=document.getElementById('user-avatar');if(av)av.textContent=initials;
   var un=document.getElementById('user-name');if(un)un.textContent=name.split(' ')[0];
-  var res2=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
-  if(res2.data)agencyProfile=res2.data;
   loadDashboard();
   loadProperties();
 });
@@ -35,12 +33,12 @@ function showTab(id){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});
   document.querySelectorAll('.ntab').forEach(function(t){t.classList.remove('active')});
   var el=document.getElementById(id);if(el)el.classList.add('active');
-  var tabs=['t-dashboard','t-properties','t-keys','t-profile'];
+  var tabs=['t-resumen','t-props','t-agenda','t-keys','t-comand','t-perfil'];
   var idx=tabs.indexOf(id);
   var ntabs=document.querySelectorAll('.ntab');
   if(idx>=0&&ntabs[idx])ntabs[idx].classList.add('active');
-  if(id==='t-properties')loadProperties();
-  if(id==='t-keys')loadKeys();
+  if(id==='t-props')loadProperties();
+  if(id==='t-keys')loadKeys(currentKeyFilter);
 }
 
 function propEmoji(type){
@@ -52,22 +50,20 @@ function closeModal(id){var el=document.getElementById(id);if(el)el.style.displa
 
 async function loadDashboard(){
   if(!currentUser)return;
-  var res=await sb.from('properties').select('id,status').eq('owner_id',currentUser.id);
-  var props=res.data||[];
+  var r1=await sb.from('properties').select('id,status').eq('owner_id',currentUser.id);
+  var props=r1.data||[];
   var active=props.filter(function(p){return p.status==='activa'}).length;
-  var el=document.getElementById('dash-props');if(el)el.textContent=active;
-  var el5=document.getElementById('ag-stat-props');if(el5)el5.textContent=active;
-  var res2=await sb.from('keys').select('id,status').eq('owner_id',currentUser.id);
-  var keys=res2.data||[];
+  var r2=await sb.from('keys').select('id,status').eq('owner_id',currentUser.id);
+  var keys=r2.data||[];
   var waiting=keys.filter(function(k){return k.status==='waiting'}).length;
   var unlocked=keys.filter(function(k){return k.status==='unlocked'}).length;
-  var el2=document.getElementById('dash-keys');if(el2)el2.textContent=keys.length;
-  var el3=document.getElementById('dash-waiting');if(el3)el3.textContent=waiting;
-  var el4=document.getElementById('dash-unlocked');if(el4)el4.textContent=unlocked;
-  var el6=document.getElementById('ag-stat-keys');if(el6)el6.textContent=keys.length;
-  var el7=document.getElementById('ag-stat-waiting');if(el7)el7.textContent=waiting;
-  var el8=document.getElementById('ag-stat-unlocked');if(el8)el8.textContent=unlocked;
+  setEl('dash-props',active);setEl('dash-keys',keys.length);
+  setEl('dash-waiting',waiting);setEl('dash-unlocked',unlocked);
+  setEl('ag-stat-props',active);setEl('ag-stat-keys',keys.length);
+  setEl('ag-stat-waiting',waiting);setEl('ag-stat-unlocked',unlocked);
 }
+
+function setEl(id,val){var el=document.getElementById(id);if(el)el.textContent=val;}
 
 async function loadProperties(){
   var pl=document.getElementById('prop-list');
@@ -77,7 +73,7 @@ async function loadProperties(){
   var res=await sb.from('properties').select('*').eq('owner_id',currentUser.id).order('created_at',{ascending:false});
   var data=res.data||[];
   if(data.length===0){
-    pl.innerHTML='<div class="empty-state"><div style="font-size:32px;margin-bottom:10px">🏠</div><p>No tienes propiedades publicadas aún.</p><p style="font-size:11px;margin-top:6px">Haz clic en <b style="color:var(--ag)">+ Publicar bien</b> para añadir la primera.</p></div>';
+    pl.innerHTML='<div class="empty-state"><div style="font-size:32px;margin-bottom:10px">🏠</div><p>No tienes propiedades publicadas aún.</p><p style="font-size:11px;margin-top:6px">Haz clic en <b style="color:var(--ag)">+ Publicar bien</b></p></div>';
     if(pd)pd.innerHTML='<div class="empty-state" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:32px;opacity:.3">🏠</div><p style="margin-top:8px">Sin propiedades aún</p></div>';
     return;
   }
@@ -87,19 +83,14 @@ async function loadProperties(){
     var el=document.createElement('div');
     el.className='prop-item'+(i===0?' active':'');
     el.innerHTML='<div class="prop-thumb">'+emoji+'</div>'
-      +'<div class="prop-info">'
-      +'<div class="prop-name">'+p.title+'</div>'
+      +'<div class="prop-info"><div class="prop-name">'+p.title+'</div>'
       +'<div class="prop-sub">'+p.operation+' · '+p.location+'</div>'
-      +'<div class="prop-tags"><span class="tag dim">'+p.type+'</span><span class="tag '+(p.status==='activa'?'inv':'red')+'">'+p.status+'</span></div>'
-      +'</div>'
-      +'<div class="prop-right">'
-      +'<div class="prop-price">'+Number(p.price).toLocaleString('es')+'€</div>'
-      +(p.surface?'<div class="prop-views">'+p.surface+'m²</div>':'')
-      +'</div>';
+      +'<div class="prop-tags"><span class="tag dim">'+p.type+'</span><span class="tag '+(p.status==='activa'?'inv':'red')+'">'+p.status+'</span></div></div>'
+      +'<div class="prop-right"><div class="prop-price">'+Number(p.price).toLocaleString('es')+'€</div>'
+      +(p.surface?'<div class="prop-views">'+p.surface+'m²</div>':'')+'</div>';
     el.onclick=function(){
       document.querySelectorAll('.prop-item').forEach(function(x){x.classList.remove('active')});
-      el.classList.add('active');
-      showPropDetail(p,emoji);
+      el.classList.add('active');showPropDetail(p,emoji);
     };
     pl.appendChild(el);
     if(i===0)showPropDetail(p,emoji);
@@ -129,6 +120,9 @@ function showPropDetail(p,emoji){
     +'<div class="det-row"><span>Estado</span><span>'+p.status+'</span></div>'
     +(tags?'<div class="det-sect">Características</div><div style="display:flex;flex-wrap:wrap;gap:4px;padding:6px 0">'+tags+'</div>':'')
     +(p.description?'<div class="det-sect">Descripción</div><div style="font-size:11px;color:var(--sub);line-height:1.7;padding:6px 0">'+p.description+'</div>':'')
+    +'<div class="det-sect">Documentos</div>'
+    +'<div class="doc-upload-zone">📎 Añadir documentos<br><span style="font-size:10px;color:var(--dim)">Escritura · Plano · Contrato borrador · Cédula</span></div>'
+    +'<div style="font-size:10px;color:var(--dim);margin-top:6px;margin-bottom:12px">🔒 Tú decides qué documentos compartes con cada cliente en cada Key.</div>'
     +'<div class="det-sect">Acciones</div>'
     +'<div class="det-actions">'
     +'<button class="da-btn" onclick="toggleStatus(\''+p.id+'\',\''+p.status+'\')">'+( p.status==='activa'?'Desactivar':'Activar')+'</button>'
@@ -158,13 +152,10 @@ async function publishProperty(){
   var session=await sb.auth.getSession();
   if(!session.data.session){window.location.href='login.html';return;}
   var userId=session.data.session.user.id;
-  var insert={
+  var {error}=await sb.from('properties').insert({
     title:title,price:parseFloat(price),type:type,operation:op,
-    surface:sqm?parseFloat(sqm):null,
-    bedrooms:beds?parseInt(beds):null,
-    bathrooms:baths?parseInt(baths):null,
-    location:location,country:'Andorra',
-    description:desc,owner_id:userId,status:'activa',visibility:'todos',
+    surface:sqm?parseFloat(sqm):null,bedrooms:beds?parseInt(beds):null,bathrooms:baths?parseInt(baths):null,
+    location:location,country:'Andorra',description:desc,owner_id:userId,status:'activa',visibility:'todos',
     has_terrace:document.getElementById('pub-terrace').checked,
     has_parking:document.getElementById('pub-parking').checked,
     has_pool:document.getElementById('pub-pool').checked,
@@ -177,24 +168,29 @@ async function publishProperty(){
     tourist_use:document.getElementById('pub-tourist').checked,
     year_built:document.getElementById('pub-year').value?parseInt(document.getElementById('pub-year').value):null,
     energy_cert:document.getElementById('pub-energy').value||null
-  };
-  var {error}=await sb.from('properties').insert(insert);
+  });
   if(error){err.textContent='Error: '+error.message;err.className='msg error show';}
   else{
     suc.textContent='Propiedad publicada correctamente.';suc.className='msg success show';
-    setTimeout(function(){closeModal('modal-publish');loadProperties();showTab('t-properties');},1500);
+    setTimeout(function(){closeModal('modal-publish');loadProperties();showTab('t-props');},1500);
   }
 }
 
-async function loadKeys(){
+async function loadKeys(filter){
+  currentKeyFilter=filter||'all';
+  document.querySelectorAll('.key-filter-btn').forEach(function(b){b.classList.remove('active')});
+  var activeBtn=document.getElementById('kf-'+currentKeyFilter);
+  if(activeBtn)activeBtn.classList.add('active');
   var kl=document.getElementById('keys-list');
   var kd=document.getElementById('key-detail');
   if(!kl||!currentUser)return;
   kl.innerHTML='<div class="loading">Cargando Keys...</div>';
-  var res=await sb.from('keys').select('*, properties(title,location,price,type), profiles!keys_requester_id_fkey(full_name,country,phone)').eq('owner_id',currentUser.id).order('created_at',{ascending:false});
+  var query=sb.from('keys').select('*, properties(title,location,price,type), profiles!keys_requester_id_fkey(full_name,country,phone)').eq('owner_id',currentUser.id);
+  if(currentKeyFilter!=='all')query=query.eq('status',currentKeyFilter);
+  var res=await query.order('created_at',{ascending:false});
   var data=res.data||[];
   if(data.length===0){
-    kl.innerHTML='<div class="empty-state">No tienes Keys recibidas aún.</div>';
+    kl.innerHTML='<div class="empty-state">No hay Keys'+(currentKeyFilter!=='all'?' en este estado':'')+'.</div>';
     return;
   }
   kl.innerHTML='';
@@ -207,16 +203,13 @@ async function loadKeys(){
     var initials=name.split(' ').map(function(n){return n[0]}).join('').substring(0,2).toUpperCase();
     var el=document.createElement('div');el.className='key-item';
     el.innerHTML='<div class="ki-av">'+initials+'</div>'
-      +'<div class="ki-info">'
-      +'<div class="ki-name">'+name+'</div>'
+      +'<div class="ki-info"><div class="ki-name">'+name+'</div>'
       +'<div class="ki-prop">'+(p.title||'Propiedad')+'</div>'
-      +'<div class="ki-sub">'+(client.country||'')+'</div>'
-      +'</div>'
+      +'<div class="ki-sub">'+(client.country||'')+'</div></div>'
       +'<span class="ki-status '+stClass+'">'+stLabel+'</span>';
     el.onclick=function(){
       document.querySelectorAll('.key-item').forEach(function(x){x.classList.remove('active')});
-      el.classList.add('active');
-      openKeyDetail(k,p,client);
+      el.classList.add('active');openKeyDetail(k,p,client);
     };
     kl.appendChild(el);
   });
@@ -238,8 +231,7 @@ function openKeyDetail(k,p,client){
       '<div style="display:flex;gap:8px;margin-bottom:16px">'
       +'<button class="da-btn primary" onclick="updateKeyStatus(\''+k.id+'\',\'unlocked\')">✅ Aceptar Key</button>'
       +'<button class="da-btn" style="color:var(--red);border-color:var(--red-bd)" onclick="updateKeyStatus(\''+k.id+'\',\'locked\')">🔒 Rechazar</button>'
-      +'</div>':''
-    )
+      +'</div>':'')
     +(k.status==='unlocked'?'<div class="kd-placeholder"><div style="font-size:28px;margin-bottom:8px">💬</div><p>Chat disponible próximamente</p></div>':'')
     +'</div>';
 }
@@ -247,7 +239,7 @@ function openKeyDetail(k,p,client){
 async function updateKeyStatus(keyId,newStatus){
   var {error}=await sb.from('keys').update({status:newStatus}).eq('id',keyId);
   if(error){alert('Error: '+error.message);}
-  else{loadKeys();loadDashboard();}
+  else{loadKeys(currentKeyFilter);loadDashboard();}
 }
 </script>
 <style>
@@ -264,38 +256,31 @@ async function updateKeyStatus(keyId,newStatus){
 html,body{height:100%;overflow:hidden}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:4px}
-nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;background:rgba(12,12,14,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:300}
+nav{height:54px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(12,12,14,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:300}
 .logo{display:flex;align-items:center;gap:8px;cursor:pointer}
 .logo-word{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;letter-spacing:0.18em;text-transform:uppercase;color:var(--text)}
-.nav-tabs{display:flex;gap:2px}
-.ntab{padding:6px 14px;border-radius:6px;border:none;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s}
+.nav-tabs{display:flex;gap:1px}
+.ntab{padding:5px 11px;border-radius:6px;border:none;background:transparent;color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s;white-space:nowrap}
 .ntab:hover{color:var(--text)}
 .ntab.active{background:var(--s2);color:var(--text);border:1px solid var(--border2)}
 .nav-right{display:flex;align-items:center;gap:8px}
 .badge-ag{padding:3px 9px;border-radius:5px;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:var(--ag-bg);color:var(--ag);border:1px solid var(--ag-bd)}
 .avatar{width:28px;height:28px;border-radius:50%;background:var(--ag-bg);border:1px solid var(--ag-bd);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--ag)}
-.btn-publish{padding:6px 14px;background:var(--ag);color:#0c0c0e;border:none;border-radius:7px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:filter .18s}
+.btn-publish{padding:6px 13px;background:var(--ag);color:#0c0c0e;border:none;border-radius:7px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:filter .18s}
 .btn-publish:hover{filter:brightness(1.08)}
 .btn-logout{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;background:transparent;color:var(--sub);border:1px solid var(--border2);cursor:pointer;font-family:'Inter',sans-serif}
 .btn-logout:hover{color:var(--text)}
 .screen{display:none;position:fixed;top:54px;left:0;right:0;bottom:0;overflow:hidden}
 .screen.active{display:block}
-#t-dashboard{background:var(--bg)}
-.dashboard-main{overflow-y:auto;height:calc(100vh - 54px);padding:20px 24px;max-width:1000px;margin:0 auto}
-.dash-hd{margin-bottom:20px}
-.dash-hd h2{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:4px}
-.dash-hd p{font-size:11px;color:var(--sub)}
-.krow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.scrollable{overflow-y:auto;height:calc(100vh - 54px);padding:20px 24px;max-width:1000px;margin:0 auto}
+.krow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
 .kcard{background:var(--s1);border-radius:10px;padding:14px;border:1px solid var(--border)}
 .klbl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
 .kval{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;line-height:1;margin-bottom:2px}
-.kdelta{font-size:11px;color:var(--inv)}
+.kdelta{font-size:11px;color:var(--sub)}
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
 .card h4{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:400;margin-bottom:10px}
-.row-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
-.row-item:last-child{border-bottom:none}
-#t-properties{background:var(--bg)}
 .props-layout{display:grid;grid-template-columns:1fr 320px;height:calc(100vh - 54px)}
 .props-list{padding:18px 20px;overflow-y:auto;height:100%}
 .props-detail{background:var(--s1);border-left:1px solid var(--border);padding:20px;overflow-y:auto;height:100%}
@@ -312,7 +297,7 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
 .prop-price{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:500;margin-bottom:2px}
 .prop-views{font-size:10px;color:var(--dim)}
 .det-head{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
-.det-img{width:100%;height:100px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:10px;background:linear-gradient(135deg,#06080f,#040404)}
+.det-img{width:100%;height:90px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:10px;background:linear-gradient(135deg,#06080f,#040404)}
 .det-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;margin-bottom:2px}
 .det-ref{font-size:11px;color:var(--sub);margin-bottom:10px}
 .det-sect{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:10px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border)}
@@ -320,14 +305,19 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
 .det-row:last-child{border-bottom:none}
 .det-row span:last-child{color:var(--text);font-weight:500}
 .det-actions{display:flex;flex-direction:column;gap:5px;margin-top:10px}
-.da-btn{padding:8px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;border:1px solid var(--border2);background:transparent;color:var(--sub);text-align:center}
+.da-btn{padding:8px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;border:1px solid var(--border2);background:transparent;color:var(--sub);text-align:center;width:100%}
 .da-btn:hover{color:var(--text)}.da-btn.primary{background:var(--ag);color:#0c0c0e;border-color:var(--ag)}
-#t-keys{background:var(--bg)}
-.keys-layout{display:grid;grid-template-columns:320px 1fr;height:calc(100vh - 54px)}
-.keys-col{background:var(--s1);border-right:1px solid var(--border);overflow-y:auto;height:100%}
-.keys-col-hd{padding:14px;border-bottom:1px solid var(--border)}
-.keys-col-hd h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400}
-.key-list{overflow-y:auto}
+.doc-upload-zone{border:1px dashed var(--border2);border-radius:8px;padding:12px;text-align:center;font-size:11px;color:var(--sub);cursor:pointer;margin-top:8px}
+.doc-upload-zone:hover{border-color:var(--ag);color:var(--ag)}
+.keys-layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 54px)}
+.keys-col{background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100%}
+.keys-col-hd{padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.keys-col-hd h3{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;margin-bottom:8px}
+.key-filters{display:flex;gap:4px;flex-wrap:wrap}
+.key-filter-btn{padding:4px 10px;border-radius:8px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid var(--border2);background:transparent;color:var(--sub);transition:all .18s}
+.key-filter-btn:hover{color:var(--text)}
+.key-filter-btn.active{background:var(--ag-bg);color:var(--ag);border-color:var(--ag-bd)}
+.key-list{flex:1;overflow-y:auto}
 .key-item{display:flex;gap:8px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .18s;align-items:center}
 .key-item:hover{background:var(--s2)}.key-item.active{background:var(--s2);border-left:2px solid var(--ag)}
 .ki-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;background:var(--cl-bg);color:var(--cl)}
@@ -345,7 +335,30 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
 .kd-header.w{background:var(--ag-bg);color:var(--ag);border-bottom:1px solid var(--ag-bd)}
 .kd-header.l{background:var(--red-bg);color:var(--red);border-bottom:1px solid var(--red-bd)}
 .kd-placeholder{padding:40px;text-align:center;color:var(--dim);font-size:13px;line-height:1.7}
-#t-profile{background:var(--bg)}
+.agenda-layout{display:grid;grid-template-columns:1fr 280px;height:calc(100vh - 54px)}
+.agenda-main{padding:18px 22px;overflow-y:auto;height:100%}
+.agenda-side{background:var(--s1);border-left:1px solid var(--border);padding:16px;overflow-y:auto;height:100%}
+.agenda-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cal-wrap{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
+.cal-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cal-hd span{font-size:13px;font-weight:600}
+.cal-nav{background:transparent;border:none;color:var(--sub);cursor:pointer;font-size:16px;padding:2px 6px}
+.cal-nav:hover{color:var(--text)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day-hd{font-size:9px;color:var(--dim);padding:3px 0;font-weight:600;text-align:center}
+.cal-day{font-size:12px;padding:6px;border-radius:6px;cursor:pointer;transition:background .18s;color:var(--sub);text-align:center;border:1px solid transparent}
+.cal-day:hover{background:var(--s2);color:var(--text)}
+.cal-day.today{background:var(--ag-bg);color:var(--ag);border-color:var(--ag-bd);font-weight:600}
+.cal-day.open{background:var(--inv-bg);color:var(--inv);border-color:var(--inv-bd)}
+.cal-day.closed{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.cal-day.selected{outline:2px solid var(--ag)}
+.cal-day.empty{cursor:default;border:none}
+.avail-ctrl{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.avail-btn{padding:6px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid var(--border2);background:transparent;color:var(--sub);transition:all .18s}
+.avail-btn:hover{color:var(--text)}
+.comand-layout{display:grid;grid-template-columns:1fr 300px;height:calc(100vh - 54px)}
+.comand-main{padding:18px 22px;overflow-y:auto;height:100%}
+.comand-side{background:var(--s1);border-left:1px solid var(--border);padding:16px;overflow-y:auto;height:100%}
 .profile-layout{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 54px)}
 .prof-left{padding:24px;overflow-y:auto;height:100%}
 .prof-right{background:var(--s1);border-left:1px solid var(--border);padding:24px;overflow-y:auto;height:100%}
@@ -392,7 +405,7 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
 </head>
 <body>
   <nav>
-  <div class="logo" onclick="showTab('t-dashboard')">
+  <div class="logo" onclick="showTab('t-resumen')">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="11" stroke="#B8934A" stroke-width="0.6" opacity="0.35"/>
       <polygon points="14,3 8,13 12,13 10,21 17,11 13,11" fill="#B8934A" opacity="0.82"/>
@@ -400,10 +413,12 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
     <div class="logo-word">REALTHORS</div>
   </div>
   <div class="nav-tabs">
-    <button class="ntab active" onclick="showTab('t-dashboard')">Resumen</button>
-    <button class="ntab" onclick="showTab('t-properties')">Propiedades</button>
+    <button class="ntab active" onclick="showTab('t-resumen')">Resumen</button>
+    <button class="ntab" onclick="showTab('t-props')">Propiedades</button>
+    <button class="ntab" onclick="showTab('t-agenda')">Agenda</button>
     <button class="ntab" onclick="showTab('t-keys')">Keys</button>
-    <button class="ntab" onclick="showTab('t-profile')">Mi agencia</button>
+    <button class="ntab" onclick="showTab('t-comand')">Co-mandatos</button>
+    <button class="ntab" onclick="showTab('t-perfil')">Mi agencia</button>
   </div>
   <div class="nav-right">
     <span class="badge-ag">Agencia</span>
@@ -414,14 +429,14 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
   </div>
 </nav>
 
-<div id="t-dashboard" class="screen active">
-  <div class="dashboard-main">
-    <div class="dash-hd"><h2>Resumen</h2><p>Bienvenido a tu panel de agencia Realthors</p></div>
+<div id="t-resumen" class="screen active">
+  <div class="scrollable">
+    <div style="margin-bottom:16px"><h2 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:4px">Resumen</h2><p style="font-size:11px;color:var(--sub)">Bienvenido a tu panel de agencia Realthors</p></div>
     <div class="krow">
       <div class="kcard"><div class="klbl">Propiedades activas</div><div class="kval" id="dash-props">—</div><div class="kdelta">Publicadas</div></div>
       <div class="kcard"><div class="klbl">Keys recibidas</div><div class="kval" id="dash-keys">—</div><div class="kdelta">Total</div></div>
       <div class="kcard"><div class="klbl">Waiting</div><div class="kval" id="dash-waiting">—</div><div class="kdelta" style="color:var(--ag)">Pendientes revisión</div></div>
-      <div class="kcard"><div class="klbl">Unlocked</div><div class="kval" id="dash-unlocked">—</div><div class="kdelta">Conversaciones activas</div></div>
+      <div class="kcard"><div class="klbl">Unlocked</div><div class="kval" id="dash-unlocked">—</div><div class="kdelta" style="color:var(--inv)">Conversaciones activas</div></div>
     </div>
     <div class="dash-grid">
       <div class="card">
@@ -429,22 +444,24 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
         <div style="display:flex;flex-direction:column;gap:8px">
           <button class="da-btn primary" onclick="openModal('modal-publish')">+ Publicar nueva propiedad</button>
           <button class="da-btn" onclick="showTab('t-keys')">Ver Keys recibidas</button>
-          <button class="da-btn" onclick="showTab('t-properties')">Gestionar propiedades</button>
+          <button class="da-btn" onclick="showTab('t-props')">Gestionar propiedades</button>
+          <button class="da-btn" onclick="showTab('t-agenda')">Gestionar agenda</button>
         </div>
       </div>
       <div class="card">
-        <h4>Información</h4>
+        <h4>Cómo funciona Realthors</h4>
         <div style="font-size:11px;color:var(--sub);line-height:1.8">
-          <p>📌 Publica tus propiedades para que aparezcan en el feed de los clientes.</p>
-          <p style="margin-top:8px">🗝️ Cuando un cliente solicite una Key, aparecerá aquí.</p>
-          <p style="margin-top:8px">✅ Acepta o rechaza Keys desde la sección Keys.</p>
+          <p>📌 Publica tus propiedades — aparecerán en el feed de clientes que encajen.</p>
+          <p style="margin-top:8px">🗝️ Los clientes solicitan Keys — tú decides si aceptar o rechazar.</p>
+          <p style="margin-top:8px">💬 Una vez aceptada la Key, se abre la conversación.</p>
+          <p style="margin-top:8px">📅 Gestiona tu agenda para que los clientes puedan reservar visitas.</p>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<div id="t-properties" class="screen">
+<div id="t-props" class="screen">
   <div class="props-layout">
     <div class="props-list">
       <div class="props-hd">
@@ -462,10 +479,64 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
   </div>
 </div>
 
+<div id="t-agenda" class="screen">
+  <div class="agenda-layout">
+    <div class="agenda-main">
+      <div class="agenda-hd">
+        <div><h2 style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400">Agenda</h2><p style="font-size:11px;color:var(--sub);margin-top:2px">Gestiona tu disponibilidad y visitas</p></div>
+      </div>
+      <div class="cal-wrap">
+        <div class="cal-hd">
+          <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+          <span id="cal-title">Mayo 2026</span>
+          <button class="cal-nav" onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-day-hd">L</div><div class="cal-day-hd">M</div><div class="cal-day-hd">X</div>
+          <div class="cal-day-hd">J</div><div class="cal-day-hd">V</div><div class="cal-day-hd">S</div><div class="cal-day-hd">D</div>
+        </div>
+        <div class="cal-grid" id="cal-days"></div>
+      </div>
+      <div class="avail-ctrl">
+        <span style="font-size:11px;color:var(--sub);align-self:center">Días seleccionados:</span>
+        <button class="avail-btn" style="background:var(--inv-bg);color:var(--inv);border-color:var(--inv-bd)" onclick="setAvailability('open')">✅ Disponible</button>
+        <button class="avail-btn" style="background:var(--red-bg);color:var(--red);border-color:var(--red-bd)" onclick="setAvailability('closed')">🚫 No disponible</button>
+        <button class="avail-btn" onclick="setAvailability('none')">↩ Quitar</button>
+      </div>
+      <span class="sep">Próximas visitas</span>
+      <div id="visits-list">
+        <div class="empty-state" style="padding:20px"><p style="font-size:12px">No hay visitas programadas aún.</p><p style="font-size:11px;margin-top:4px;color:var(--dim)">Los clientes podrán solicitar visitas una vez que tengan una Key activa.</p></div>
+      </div>
+    </div>
+    <div class="agenda-side">
+      <span class="sep">Leyenda</span>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--sub)"><div style="width:16px;height:16px;border-radius:4px;background:var(--inv-bg);border:1px solid var(--inv-bd)"></div>Disponible</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--sub)"><div style="width:16px;height:16px;border-radius:4px;background:var(--red-bg);border:1px solid var(--red-bd)"></div>No disponible</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--sub)"><div style="width:16px;height:16px;border-radius:4px;background:var(--ag-bg);border:1px solid var(--ag-bd)"></div>Hoy</div>
+      </div>
+      <span class="sep">Instrucciones</span>
+      <div style="font-size:11px;color:var(--sub);line-height:1.7">
+        <p>1. Haz clic en un día para seleccionarlo.</p>
+        <p style="margin-top:6px">2. Usa los botones para marcar tu disponibilidad.</p>
+        <p style="margin-top:6px">3. Los clientes con Key activa verán tu disponibilidad al solicitar visita.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="t-keys" class="screen">
   <div class="keys-layout">
     <div class="keys-col">
-      <div class="keys-col-hd"><h3>Keys recibidas</h3></div>
+      <div class="keys-col-hd">
+        <h3>Keys recibidas</h3>
+        <div class="key-filters">
+          <button class="key-filter-btn active" id="kf-all" onclick="loadKeys('all')">Todas</button>
+          <button class="key-filter-btn" id="kf-waiting" onclick="loadKeys('waiting')">⏳ Waiting</button>
+          <button class="key-filter-btn" id="kf-unlocked" onclick="loadKeys('unlocked')">🔓 Unlocked</button>
+          <button class="key-filter-btn" id="kf-locked" onclick="loadKeys('locked')">🔒 Locked</button>
+        </div>
+      </div>
       <div class="key-list" id="keys-list"><div class="loading">Cargando...</div></div>
     </div>
     <div class="key-detail" id="key-detail">
@@ -477,7 +548,40 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
   </div>
 </div>
 
-<div id="t-profile" class="screen">
+<div id="t-comand" class="screen">
+  <div class="comand-layout">
+    <div class="comand-main">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+        <div><h2 style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400">Co-mandatos</h2><p style="font-size:11px;color:var(--sub);margin-top:2px">Agencias colaboradoras y propiedades compartidas</p></div>
+        <button class="btn-publish" onclick="openModal('modal-comand')">+ Nuevo co-mandato</button>
+      </div>
+      <div id="comand-list">
+        <div class="empty-state">
+          <div style="font-size:32px;margin-bottom:10px">🤝</div>
+          <p>No tienes co-mandatos activos aún.</p>
+          <p style="font-size:11px;margin-top:6px;color:var(--dim)">Los co-mandatos te permiten compartir propiedades con otras agencias y dividir la comisión.</p>
+        </div>
+      </div>
+    </div>
+    <div class="comand-side">
+      <span class="sep">Resumen</span>
+      <div class="pref-card">
+        <h4>Co-mandatos activos</h4>
+        <div class="pref-row"><span>Activos</span><span>0</span></div>
+        <div class="pref-row"><span>Propiedades compartidas</span><span>0</span></div>
+        <div class="pref-row"><span>Agencias colaboradoras</span><span>0</span></div>
+      </div>
+      <span class="sep">Cómo funciona</span>
+      <div style="font-size:11px;color:var(--sub);line-height:1.7">
+        <p>Comparte una propiedad con otra agencia de Realthors.</p>
+        <p style="margin-top:6px">Defines la comisión de cada parte y ambas pueden gestionar la propiedad.</p>
+        <p style="margin-top:6px">El cliente ve la propiedad una sola vez en el feed.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="t-perfil" class="screen">
   <div class="profile-layout">
     <div class="prof-left">
       <div class="ph-top"><div class="ph-av">🏢</div><div><div class="ph-name">Mi agencia</div><div class="ph-sub">Agencia · Realthors</div></div></div>
@@ -512,7 +616,6 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
     </div>
   </div>
 </div>
-
 <div class="modal-overlay" id="modal-publish">
   <div class="modal">
     <div class="modal-close" onclick="closeModal('modal-publish')">✕</div>
@@ -580,5 +683,91 @@ nav{height:54px;padding:0 28px;display:flex;align-items:center;justify-content:s
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-comand">
+  <div class="modal">
+    <div class="modal-close" onclick="closeModal('modal-comand')">✕</div>
+    <h2>Nuevo co-mandato</h2>
+    <p class="modal-sub">Comparte una propiedad con otra agencia de Realthors</p>
+    <div class="frow"><label>Propiedad</label>
+      <select class="finp" id="co-prop"><option value="">Selecciona una propiedad</option></select>
+    </div>
+    <div class="frow"><label>Agencia colaboradora (email Realthors)</label>
+      <input class="finp" id="co-agency" placeholder="agencia@ejemplo.com">
+    </div>
+    <div class="frow2">
+      <div><label>Tu comisión (%)</label><input class="finp" id="co-my-pct" placeholder="50" type="number" min="1" max="99"></div>
+      <div><label>Comisión agencia (%)</label><input class="finp" id="co-their-pct" placeholder="50" type="number" min="1" max="99"></div>
+    </div>
+    <div class="frow"><label>Notas</label>
+      <textarea class="finp" id="co-notes" placeholder="Condiciones especiales..." style="height:60px;resize:none"></textarea>
+    </div>
+    <button class="modal-confirm" onclick="alert('Co-mandatos disponibles próximamente.')">Enviar propuesta</button>
+  </div>
+</div>
+
+<script>
+var calYear=2026,calMonth=4,selectedDays={},availability={};
+var months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function renderCalendar(){
+  var title=document.getElementById('cal-title');
+  if(title)title.textContent=months[calMonth]+' '+calYear;
+  var grid=document.getElementById('cal-days');if(!grid)return;
+  grid.innerHTML='';
+  var first=new Date(calYear,calMonth,1).getDay();
+  var days=new Date(calYear,calMonth+1,0).getDate();
+  var start=first===0?6:first-1;
+  var today=new Date();
+  for(var i=0;i<start;i++){var d=document.createElement('div');d.className='cal-day empty';grid.appendChild(d);}
+  for(var day=1;day<=days;day++){
+    var el=document.createElement('div');
+    var key=calYear+'-'+calMonth+'-'+day;
+    var isToday=today.getFullYear()===calYear&&today.getMonth()===calMonth&&today.getDate()===day;
+    var avail=availability[key];
+    var cls='cal-day'+(isToday?' today':'')+(avail==='open'?' open':avail==='closed'?' closed':'')+(selectedDays[key]?' selected':'');
+    el.className=cls;el.textContent=day;
+    el.onclick=(function(d){return function(){
+      var k=calYear+'-'+calMonth+'-'+d;
+      selectedDays[k]=!selectedDays[k];
+      renderCalendar();
+    }})(day);
+    grid.appendChild(el);
+  }
+}
+
+function changeMonth(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+
+function setAvailability(type){
+  Object.keys(selectedDays).forEach(function(k){
+    if(selectedDays[k]){
+      if(type==='none')delete availability[k];
+      else availability[k]=type;
+      selectedDays[k]=false;
+    }
+  });
+  renderCalendar();
+}
+
+async function loadPropsForComand(){
+  if(!currentUser)return;
+  var sel=document.getElementById('co-prop');if(!sel)return;
+  var res=await sb.from('properties').select('id,title').eq('owner_id',currentUser.id).eq('status','activa');
+  var data=res.data||[];
+  sel.innerHTML='<option value="">Selecciona una propiedad</option>';
+  data.forEach(function(p){
+    var opt=document.createElement('option');opt.value=p.id;opt.textContent=p.title;sel.appendChild(opt);
+  });
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  renderCalendar();
+  loadPropsForComand();
+});
+</script>
 </body>
 </html>
